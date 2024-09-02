@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TopBar from './components/TopBar';
 import ChatHistory from './components/ChatHistory';
 import ChatWindow from './components/ChatWindow';
+import ConstructionMaterials from './components/Materials';
 
 function App() {
   const user = {
@@ -17,12 +18,20 @@ function App() {
         { text: 'Hola, estoy trabajando en un proyecto de renovación y necesito saber cuál es el mejor tipo de concreto para una estructura en una zona con alta humedad.', isUser: true },
         { text: '¡Hola! Para una estructura en una zona con alta humedad, te recomendaría usar concreto de alta resistencia con aditivos impermeabilizantes. Este tipo de concreto está diseñado para reducir la permeabilidad y proteger contra la humedad. ¿Te gustaría obtener más información sobre los aditivos específicos que podrías usar?', isUser: false },
       ],
+      materials: [
+        { name: 'Cemento Polpaico 25 kilos', photo: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/sodimacCL/338845X_00/w=1500,h=1500,fit=pad', quantity: 1, sku: ' 110309919' }, 
+        // Otros materiales específicos del Chat 1
+      ],
     },
     {
       name: 'Chat ejemploo',
       messages: [
         { text: 'Holaaa', isUser: true },
         { text: 'bien si', isUser: false },
+      ],
+      materials: [
+        { name: 'Taladro inalámbrico percutor', photo: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/sodimacCL/5302498_00/w=1500,h=1500,fit=pad', quantity: 1, sku: ' 110063938' }, 
+        // Otros materiales específicos del Chat 1
       ],
     },
   ]);
@@ -39,6 +48,11 @@ function App() {
     setSelectedChatIndex(index);
   };
 
+  const [materials, setMaterials] = useState([
+    { name: 'Cemento Polpaico 25 kilos', photo: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/sodimacCL/338845X_00/w=1500,h=1500,fit=pad', quantity: 1, sku: ' 110309919' }, 
+  ]);
+
+
   return (
     <div className="h-screen flex flex-col">
       <TopBar user={user} />
@@ -47,14 +61,11 @@ function App() {
           <ChatHistory history={chatHistory} onChatSelect={handleChatSelect} />
         </div>
         <div className="w-3/4 bg-white">
-          <ChatWindow 
-            selectedChat={chatHistory[selectedChatIndex]} 
-            onSendMessage={handleSendMessage} 
-          />
+          <ChatWindow selectedChat={chatHistory[selectedChatIndex]} onSendMessage={handleSendMessage} />
         </div>
+        <ConstructionMaterials materials={chatHistory[selectedChatIndex].materials} />
       </div>
     </div>
   );
 }
-
 export default App;
