@@ -1,56 +1,52 @@
 import React, { useState } from 'react';
 import TopBar from './components/TopBar';
-import ChatHistory from './components/ChatHistory';
-import ChatWindow from './components/ChatWindow';
+import ProductSearch from './components/ProductSearch';
 
 function App() {
   const user = {
     name: 'Aburik',
     email: 'Babarca@example.com',
-    avatar: 'https://pbs.twimg.com/media/GWMCvhMXsAAvXl8?format=jpg&name=medium'  // URL de un avatar de ejemplo
+    avatar: 'https://pbs.twimg.com/media/GWMCvhMXsAAvXl8?format=jpg&name=medium'
   };
 
-  const [chatHistory, setChatHistory] = useState([
-    {
-      name: 'Materiales',
-      messages: [
-        { text: 'Hola, estoy trabajando en un proyecto de renovación y necesito saber cuál es el mejor tipo de concreto para una estructura en una zona con alta humedad.', isUser: true },
-        { text: '¡Hola! Para una estructura en una zona con alta humedad, te recomendaría usar concreto de alta resistencia con aditivos impermeabilizantes. Este tipo de concreto está diseñado para reducir la permeabilidad y proteger contra la humedad. ¿Te gustaría obtener más información sobre los aditivos específicos que podrías usar?', isUser: false },
-      ],
-    },
-    {
-      name: 'Chat ejemploo',
-      messages: [
-        { text: 'Holaaa', isUser: true },
-        { text: 'bien si', isUser: false },
-      ],
-    },
-  ]);
+  const [searchResults, setSearchResults] = useState({
+    productos_encontrados: [],
+    productos_similares: []
+  });
 
-  const [selectedChatIndex, setSelectedChatIndex] = useState(0);
-
-  const handleSendMessage = (message) => {
-    const newChatHistory = [...chatHistory];
-    newChatHistory[selectedChatIndex].messages.push({ text: message, isUser: true });
-    setChatHistory(newChatHistory);
-  };
-
-  const handleChatSelect = (index) => {
-    setSelectedChatIndex(index);
+  const handleSearchResults = (results) => {
+    console.log('Resultados de la búsqueda recibidos:', results);
+    setSearchResults(results);
   };
 
   return (
     <div className="h-screen flex flex-col">
       <TopBar user={user} />
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/4 bg-gray-100">
-          <ChatHistory history={chatHistory} onChatSelect={handleChatSelect} />
+        <div className="w-1/2 bg-gray-100">
+          <ProductSearch onSearchResults={handleSearchResults} />
         </div>
-        <div className="w-3/4 bg-white">
-          <ChatWindow 
-            selectedChat={chatHistory[selectedChatIndex]} 
-            onSendMessage={handleSendMessage} 
-          />
+        <div className="w-1/2 bg-white p-4 overflow-y-auto">
+          <h2 className="text-lg font-bold mb-4">Resultados de la Búsqueda</h2>
+          <h3 className="text-md font-semibold">Productos Encontrados</h3>
+          <ul>
+            {searchResults.productos_encontrados.map((result, index) => (
+              <li key={index} className="mb-2">
+                <div><strong>Nombre:</strong> {result['Nombre del Producto']}</div>
+                <div><strong>Marca:</strong> {result['Marca']}</div>
+                <div><strong>SKU:</strong> {result['SKU']}</div>
+                {/* {result['URL de la Imagen'] && <img src={result['URL de la Imagen']} alt={result['Nombre del Producto']} />} */}
+              </li>
+            ))}
+          </ul>
+          <h3 className="text-md font-semibold">Productos Similares</h3>
+          <ul>
+            {searchResults.productos_similares.map((result, index) => (
+              <li key={index} className="mb-2">
+                {result}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
