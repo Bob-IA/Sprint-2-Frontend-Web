@@ -19,6 +19,11 @@ function App() {
     setSearchResults(results);
   };
 
+  const [materials, setMaterials] = useState([
+    { name: 'Cemento Polpaico 25 kilos', photo: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/sodimacCL/338845X_00/w=1500,h=1500,fit=pad', quantity: 1, sku: ' 110309919' }, 
+  ]);
+
+
   return (
     <div className="h-screen flex flex-col">
       <TopBar user={user} />
@@ -48,6 +53,7 @@ function App() {
             ))}
           </ul>
         </div>
+        <ConstructionMaterials materials={chatHistory[selectedChatIndex].materials} />
       </div>
     </div>
   );
