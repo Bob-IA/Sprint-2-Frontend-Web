@@ -19,11 +19,6 @@ function App() {
     setSearchResults(results);
   };
 
-  const [materials, setMaterials] = useState([
-    { name: 'Cemento Polpaico 25 kilos', photo: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/sodimacCL/338845X_00/w=1500,h=1500,fit=pad', quantity: 1, sku: ' 110309919' }, 
-  ]);
-
-
   return (
     <div className="h-screen flex flex-col">
       <TopBar user={user} />
@@ -40,7 +35,7 @@ function App() {
                 <div><strong>Nombre:</strong> {result['Nombre del Producto']}</div>
                 <div><strong>Marca:</strong> {result['Marca']}</div>
                 <div><strong>SKU:</strong> {result['SKU']}</div>
-                {/* {result['URL de la Imagen'] && <img src={result['URL de la Imagen']} alt={result['Nombre del Producto']} />} */}
+                {result['URL de la Imagen'] && <img src={result['URL de la Imagen']} alt={result['Nombre del Producto']} />}
               </li>
             ))}
           </ul>
@@ -53,7 +48,6 @@ function App() {
             ))}
           </ul>
         </div>
-        <ConstructionMaterials materials={chatHistory[selectedChatIndex].materials} />
       </div>
     </div>
   );

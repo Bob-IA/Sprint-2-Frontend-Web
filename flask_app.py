@@ -1,8 +1,26 @@
 import vertexai
+import os
+from google.cloud import aiplatform
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from vertexai.generative_models import GenerativeModel, SafetySetting
+
+# Ruta al archivo de credenciales
+credenciales_path = 'cuenta-servicio-gcp.json'
+
+# Verificar que el archivo de credenciales existe
+if not os.path.exists(credenciales_path):
+    raise FileNotFoundError(f"El archivo {credenciales_path} no se encontró.")
+
+# Configurar la variable de entorno para las credenciales de Google
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credenciales_path
+
+# Verificar que la variable de entorno esté establecida
+print("GOOGLE_APPLICATION_CREDENTIALS:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+
+# Inicializar el cliente de Vertex AI
+aiplatform.init()
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
@@ -93,7 +111,7 @@ def generate(texto_usuario, archivo):
             stream=True,
         )
 
-        # Imprimir la respuesta del modelo
+        # Inicializar la variable response_text
         response_text = ""
         for response in responses:
             response_text += response.text
