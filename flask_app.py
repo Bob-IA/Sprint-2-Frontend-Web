@@ -1,9 +1,26 @@
-import vertexai
+import os
+import json
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import vertexai
 from vertexai.generative_models import GenerativeModel, SafetySetting
+from google.oauth2 import service_account
 
+# Cargar las variables del archivo .env
+load_dotenv()
+
+# Obtener las variables del .env
+PROJECT_ID = os.getenv("VERTEXAI_PROJECT_ID")
+LOCATION = os.getenv("VERTEXAI_LOCATION")
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+# Parsear las credenciales desde el JSON almacenado en la variable de entorno
+credentials_info = json.loads(GOOGLE_CREDENTIALS_JSON)
+credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
+# Crear la aplicación Flask
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
 
@@ -14,7 +31,12 @@ def cargar_datos(archivo_path):
 # Función para generar respuesta con Vertex AI
 def generate(texto_usuario, archivo):
     try:
-        vertexai.init(project="tss-1s2024", location="us-central1")
+        # Inicializar Vertex AI con las credenciales y el proyecto
+        vertexai.init(
+            project=PROJECT_ID,
+            location=LOCATION,
+            credentials=credentials  # Usar las credenciales cargadas desde el JSON
+        )
         
         # Leer los datos del archivo CSV
         df = pd.read_csv(archivo)
@@ -42,8 +64,9 @@ def generate(texto_usuario, archivo):
         prompt = f"""
         Dado un archivo CSV con productos que contiene las columnas 'Nombre del Producto', 'Marca' y 'SKU',
         el usuario está buscando el producto: '{texto_usuario}'. 
-        Responde con productos similares que cumplan la misma función,sea de diferente marca, tamaño o color(estas caracteristicas estan en el nombre de los productos, fijate en eso) que el producto buscado en el archivo .csv, 
-        excluyendo los productos ya encontrados, tienes que responder los productos similares asi: nombre:,marca: y SKU: .Si no se encuentran productos similares, simplemente indica que no hay productos similares.
+        Responde con productos similares que cumplan la misma función, sea de diferente marca, tamaño o color (estas características están en el nombre de los productos).
+        Excluye los productos ya encontrados. Responde los productos similares así: nombre:, marca: y SKU:.
+        Si no se encuentran productos similares, simplemente indica que no hay productos similares.
 
         Estoy buscando productos que cumplan la misma función que otro producto. 
         El producto base es el nombre de producto que uno busca en productos encontrados y quiero encontrar productos similares. 
@@ -51,7 +74,6 @@ def generate(texto_usuario, archivo):
         1. Deben realizar la misma función que el producto base.
         2. Pueden ser de diferentes marcas o tamaños.
         3. Si no hay productos similares exactos, devuélveme productos con características lo más cercanas posibles.
-        Por ejemplo, si el producto es "Lija para metal grano 150", los productos similares serían "Lija para metal grano 180" o "Lija para metal grano 50", ya que cumplen la misma función, aunque sean de diferentes grosores o marcas.
 
         Archivo CSV contiene los siguientes productos:
         {df[['Nombre del Producto', 'Marca', 'SKU']].to_csv(index=False)}
@@ -85,6 +107,7 @@ def generate(texto_usuario, archivo):
             ),
         ]
         
+        # Generar contenido con el modelo generativo de Vertex AI
         model = GenerativeModel("gemini-1.5-flash-001")
         responses = model.generate_content(
             [prompt],
@@ -93,7 +116,7 @@ def generate(texto_usuario, archivo):
             stream=True,
         )
 
-        # Imprimir la respuesta del modelo
+        # Concatenar la respuesta del modelo
         response_text = ""
         for response in responses:
             response_text += response.text
@@ -133,3 +156,4 @@ def procesar_csv():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
