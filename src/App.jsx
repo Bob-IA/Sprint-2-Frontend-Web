@@ -3,12 +3,6 @@ import TopBar from './components/TopBar';
 import ProductSearch from './components/ProductSearch';
 
 function App() {
-  const user = {
-    name: 'Aburik',
-    email: 'Babarca@example.com',
-    avatar: 'https://pbs.twimg.com/media/GWMCvhMXsAAvXl8?format=jpg&name=medium'
-  };
-
   const [searchResults, setSearchResults] = useState({
     productos_encontrados: [],
     productos_similares: []
@@ -21,7 +15,7 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar user={user} />
+      <TopBar />
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/2 bg-gray-100">
           <ProductSearch onSearchResults={handleSearchResults} />
