@@ -5,6 +5,8 @@ from vertexai.generative_models import GenerativeModel
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import requests
+import io
 from google.auth import default
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
@@ -24,21 +26,28 @@ def normalizar_texto(texto):
         if unicodedata.category(c) != 'Mn'
     ).lower()
 
-# Función para cargar productos desde un archivo CSV
-def cargar_productos_desde_csv(ruta_archivo):
+# Función para cargar productos desde una URL pública (como la de Firebase Hosting)
+def cargar_productos_desde_url(url_archivo):
     productos = []
     try:
-        with open(ruta_archivo, mode='r', encoding='utf-8') as archivo_csv:
-            lector_csv = csv.DictReader(archivo_csv)
-            for fila in lector_csv:
-                productos.append({
-                    "nombre_producto": fila["Nombre del Producto"],
-                    "marca": fila["Marca"],
-                    "sku": fila["SKU"],
-                    "categoria": fila["categoria"],
-                })
+        # Descargar el contenido del archivo CSV desde la URL
+        response = requests.get(url_archivo)
+        response.raise_for_status()  # Verifica que la descarga fue exitosa
+        
+        # Convertir el contenido en un archivo manejable
+        archivo_csv = io.StringIO(response.text)
+        
+        # Leer el contenido como CSV
+        lector_csv = csv.DictReader(archivo_csv)
+        for fila in lector_csv:
+            productos.append({
+                "nombre_producto": fila["Nombre del Producto"],
+                "marca": fila["Marca"],
+                "sku": fila["SKU"],
+                "categoria": fila["categoria"],
+            })
     except Exception as e:
-        print(f"Error al cargar el archivo CSV de productos: {e}")
+        print(f"Error al cargar el archivo CSV desde la URL: {e}")
     return productos
 
 # Función para cargar nombres de búsqueda desde un archivo CSV
