@@ -1,66 +1,76 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
-function ProductSearch({ onSearchResults }) {
-  const [file, setFile] = useState(null);
-  const [productName, setProductName] = useState('');
+function ProductSearch({ onSearchResults, setLoading }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchFile, setSearchFile] = useState(null);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleProductNameChange = (e) => {
-    setProductName(e.target.value);
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    console.log('Formulario enviado');
-    if (!file || !productName) {
-      alert('Por favor, sube un archivo CSV y proporciona un nombre de producto.');
+    setLoading(true);
+
+    const formData = new FormData();
+
+    if (searchFile) {
+      formData.append('archivo', searchFile);  // Enviar archivo CSV de búsqueda
+    } else if (searchTerm) {
+      formData.append('nombre_producto', searchTerm);  // Enviar término de búsqueda desde la barra
+    } else {
+      console.error('Debe ingresar un nombre de producto o cargar un archivo');
+      setLoading(false);
       return;
     }
 
-    const formData = new FormData();
-    formData.append('archivo', file);
-    formData.append('nombre_producto', productName);
-
     try {
-      console.log('Enviando datos al servidor');
-      const response = await axios.post('http://localhost:5000/procesar_csv', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await fetch('http://localhost:5000/procesar_busqueda', {
+        method: 'POST',
+        body: formData,
       });
-      console.log('Respuesta del servidor:', response.data);
-      onSearchResults(response.data);
+
+      if (!response.ok) {
+        throw new Error('Error al procesar la búsqueda');
+      }
+
+      const data = await response.json();
+      onSearchResults(data);
     } catch (error) {
-      console.error('Error al procesar el archivo CSV:', error);
+      console.error('Error durante la búsqueda:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleFileChange = (e) => {
+    setSearchFile(e.target.files[0]);
+  };
+
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4">Buscar Productos Similares</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Archivo CSV</label>
-          <input type="file" onChange={handleFileChange} className="mt-1 block w-full" />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Nombre del Producto</label>
-          <input
-            type="text"
-            value={productName}
-            onChange={handleProductNameChange}
-            className="mt-1 block w-full"
-          />
-        </div>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-          Buscar
-        </button>
-      </form>
-    </div>
+    <form className="flex items-center" onSubmit={handleSearch}>
+      <div className="relative w-full">
+        {/* Input de búsqueda */}
+        <input
+          type="text"
+          className="w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"  // Clase 'text-black' para texto negro
+          placeholder="Buscar productos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        {/* Ícono de clip para subir archivo */}
+        <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer">
+          <input type="file" className="hidden" onChange={handleFileChange} />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656L7.05 9.879a6 6 0 008.485 8.485L17 16" />
+          </svg>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600 transition-colors"
+      >
+        Buscar
+      </button>
+    </form>
   );
 }
 
