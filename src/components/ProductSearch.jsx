@@ -7,29 +7,29 @@ function ProductSearch({ onSearchResults, setLoading }) {
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     const formData = new FormData();
-
+  
     if (searchFile) {
-      formData.append('archivo', searchFile);  // Enviar archivo CSV de búsqueda
+      formData.append('busqueda', searchFile);  // Enviar archivo CSV de búsqueda
     } else if (searchTerm) {
-      formData.append('nombre_producto', searchTerm);  // Enviar término de búsqueda desde la barra
+      formData.append('nombres_productos', searchTerm);  // Enviar término de búsqueda desde la barra
     } else {
       console.error('Debe ingresar un nombre de producto o cargar un archivo');
       setLoading(false);
       return;
     }
-
+  
     try {
-      const response = await fetch('http://localhost:5000/procesar_busqueda', {
+      const response = await fetch('http://localhost:5000/upload', {
         method: 'POST',
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al procesar la búsqueda');
       }
-
+  
       const data = await response.json();
       onSearchResults(data);
     } catch (error) {
@@ -38,6 +38,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
       setLoading(false);
     }
   };
+  
 
   const handleFileChange = (e) => {
     setSearchFile(e.target.files[0]);
@@ -49,7 +50,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
         {/* Input de búsqueda */}
         <input
           type="text"
-          className="w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"  // Clase 'text-black' para texto negro
+          className="w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"
           placeholder="Buscar productos..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
