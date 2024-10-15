@@ -9,7 +9,7 @@ function TopBar({ user, children }) {
       </div>
       <div className="relative">
         <img
-          src="/logo1.jpg"
+          src="/logo1.jpg" alt='logo'
           className="w-14 h-14 rounded-full"
         />
       </div>

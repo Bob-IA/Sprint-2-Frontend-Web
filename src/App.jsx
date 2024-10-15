@@ -9,9 +9,9 @@ function App() {
   });
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingSimilares, setLoadingSimilares] = useState(false);
+  //const [loadingSimilares, setLoadingSimilares] = useState(false);
   const [showMoreEncontrados, setShowMoreEncontrados] = useState(false);
-  const [showMoreSimilares, setShowMoreSimilares] = useState(false);
+  //const [showMoreSimilares, setShowMoreSimilares] = useState(false);
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
