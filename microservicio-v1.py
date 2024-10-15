@@ -1,35 +1,21 @@
-import os
-import json
-import pandas as pd
 import csv
 import unicodedata
+import vertexai
+from vertexai.generative_models import GenerativeModel
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
-import vertexai
-from vertexai.generative_models import GenerativeModel, SafetySetting
+import os
+from google.auth import default
+from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-import io
 
-# Cargar las variables del archivo .env
-load_dotenv()
-
-# Obtener las variables del .env
-PROJECT_ID = os.getenv("VERTEXAI_PROJECT_ID")
-LOCATION = os.getenv("VERTEXAI_LOCATION")
-GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-
-# Parsear las credenciales desde el JSON almacenado en la variable de entorno
-credentials_info = json.loads(GOOGLE_CREDENTIALS_JSON)
-credentials = service_account.Credentials.from_service_account_info(credentials_info)
-
-# Crear la aplicación Flask
 app = Flask(__name__)
+
 CORS(app)  # Habilitar CORS para todas las rutas
 
-# Cargar el archivo CSV local de productos
-csv_file_path = 'productos.csv'
-df_local = pd.read_csv(csv_file_path)
+# Cargar variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
 # Función para normalizar cadenas y eliminar acentos
 def normalizar_texto(texto):
@@ -38,137 +24,183 @@ def normalizar_texto(texto):
         if unicodedata.category(c) != 'Mn'
     ).lower()
 
-# Función para cargar los datos desde el archivo CSV de búsqueda subido
-def cargar_datos(csv_file):
-    return pd.read_csv(io.StringIO(csv_file.decode("utf-8")))
+# Función para cargar productos desde un archivo CSV
+def cargar_productos_desde_csv(ruta_archivo):
+    productos = []
+    try:
+        with open(ruta_archivo, mode='r', encoding='utf-8') as archivo_csv:
+            lector_csv = csv.DictReader(archivo_csv)
+            for fila in lector_csv:
+                productos.append({
+                    "nombre_producto": fila["Nombre del Producto"],
+                    "marca": fila["Marca"],
+                    "sku": fila["SKU"],
+                    "categoria": fila["categoria"],
+                })
+    except Exception as e:
+        print(f"Error al cargar el archivo CSV de productos: {e}")
+    return productos
 
-# Función para buscar productos exactos en el DataFrame
-def buscar_productos_exactos(productos_buscar, df):
-    productos_encontrados = pd.DataFrame()
-    for producto in productos_buscar:
-        encontrados = df[df['nombre'].str.contains(producto, case=False, na=False)]
-        productos_encontrados = pd.concat([productos_encontrados, encontrados], ignore_index=True)
-    
-    return productos_encontrados
-
-# Función para cargar nombres de búsqueda desde un archivo CSV subido
-def cargar_nombres_de_busqueda(csv_file):
+# Función para cargar nombres de búsqueda desde un archivo CSV
+def cargar_nombres_de_busqueda(ruta_archivo):
     nombres = []
-    lector_csv = csv.reader(io.StringIO(csv_file.decode("utf-8")))
-    for fila in lector_csv:
-        nombres.append(fila[0])  # Suponiendo que cada fila tiene un nombre de producto
+    try:
+        with open(ruta_archivo, mode='r', encoding='utf-8') as archivo_csv:
+            lector_csv = csv.reader(archivo_csv)
+            for fila in lector_csv:
+                nombres.append(fila[0])  # Suponiendo que cada fila tiene un nombre de producto
+    except Exception as e:
+        print(f"Error al cargar el archivo CSV de búsqueda: {e}")
     return nombres
 
-# Función para generar productos similares usando IA
-def generar_productos_similares(productos_buscar, df):
-    model = GenerativeModel("gemini-1.5-flash-001")
-    
-    # Crear el prompt para la IA
+# Función para buscar productos que comiencen con el texto del usuario
+def buscar_productos(productos, texto_usuario):
+    texto_normalizado = normalizar_texto(texto_usuario)
+    productos_encontrados = [
+        producto for producto in productos
+        if normalizar_texto(producto["nombre_producto"]).startswith(texto_normalizado)
+    ]
+    return productos_encontrados
+
+# Función para buscar productos similares
+def buscar_productos_similares(productos, categoria_producto, sku_excluido):
+    productos_similares = [
+        producto for producto in productos
+        if producto["categoria"] == categoria_producto and producto["sku"] != sku_excluido
+    ]
+    return productos_similares
+
+# Función para generar respuestas usando Vertex AI
+def generar_respuesta(producto_encontrado, productos_similares):
     prompt = f"""
-    Dado un archivo CSV con productos que contiene las columnas 'nombre', 'marca' y 'sku',
-    el usuario está buscando los productos: '{', '.join(productos_buscar)}'. 
-    Entiende que los productos pueden tener nombres diferentes en varios países de Latinoamérica. 
-    Por ejemplo, 'atornillador' es lo mismo que 'destornillador', 'punta phillips' también puede ser 'punta cruz', 
-    'clavo' también puede ser 'puntilla', 'taladro' también puede ser 'perforadora', 'llave inglesa' puede ser 'llave ajustable', 
-    'carretilla' también puede ser 'carrucha', y así sucesivamente. 
-    Responde con productos similares que cumplan la misma función (que sean de la misma categoría del producto buscado), 
-    pero sean de diferente marca, tamaño o color, evitando responder con duplicados de los productos exactos encontrados. 
-    Responde así: Sku: , Nombre: y Marca:
-    El archivo CSV contiene los siguientes productos:
-    {df[['nombre', 'marca', 'sku']].to_csv(index=False)}
-    Pregunta del usuario: {', '.join(productos_buscar)}
+    Dado que estamos buscando el producto: '{producto_encontrado["nombre_producto"]}', 
+    busca productos que realicen la misma función o que tengan otro nombre (sinónimo) en Latinoamérica, pero que sean de diferente marca, tamaño o color.
+    Aquí está la lista de productos que tenemos disponibles en la categoría '{producto_encontrado["categoria"]}':
+    {', '.join([f"SKU: {p['sku']}, Nombre: {p['nombre_producto']}, Marca: {p['marca']}" for p in productos_similares])}
+    Evita que sean repetidos de los productos exactos.
+    Responde solo con los productos que se encuentran en la lista proporcionada. 
+    Estructura la respuesta así: SKU: , Nombre: , Marca:.
     """
-    
-    # Configuración de generación
+
+    # Inicializar Vertex AI usando la cuenta de servicio y variables de entorno
+    project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
+    location = os.getenv('GOOGLE_CLOUD_LOCATION')
+    modelo_ia = os.getenv('GOOGLE_CLOUD_MODEL')
+
+    # Autenticación con la cuenta de servicio
+    credentials = service_account.Credentials.from_service_account_file(
+        'C:\Users\Jose\Desktop\Front-Bob-IA\Sprint-2-Frontend-Web\tss-1s2024-28565b1a614d (1).json'  # Coloca aquí tu ruta
+    )
+
+    # Inicializar Vertex AI con el proyecto y la ubicación desde .env
+    vertexai.init(project=project_id, location=location, credentials=credentials)
+
+    # Generar respuesta de Gemini
+    model = GenerativeModel(modelo_ia)
     generation_config = {
-        "max_output_tokens": 8192,
+        "max_output_tokens": 2048,
         "temperature": 0.1,
         "top_p": 0.95,
     }
 
-    safety_settings = [
-        SafetySetting(
-            category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold=SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-        ),
-        SafetySetting(
-            category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold=SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-        ),
-        SafetySetting(
-            category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold=SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-        ),
-    ]
+    responses = model.generate_content([prompt], generation_config=generation_config, stream=True)
     
-    responses = model.generate_content(
-        [prompt],
-        generation_config=generation_config,
-        safety_settings=safety_settings,
-        stream=True,
-    )
-
     response_text = ""
     for response in responses:
-        response_text += response.text
-
+        response_text += response.text.strip()
+    
     return response_text
 
-# Función principal para generar respuesta usando el archivo local o subido
-def generate(texto_usuario, df):
-    vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
+# Ruta para subir los archivos y realizar la búsqueda
+@app.route('/upload', methods=['POST'])
+def upload_files():
+    if 'productos' not in request.files:
+        return jsonify({"error": "Se requiere el archivo de productos."}), 400
+
+    archivo_productos = request.files['productos']
+    ruta_productos = "productos_temp.csv"
+    archivo_productos.save(ruta_productos)
+
+    # Cargar productos
+    productos = cargar_productos_desde_csv(ruta_productos)
+
+    resultados = []
     
-    # Separar los productos ingresados
-    productos_buscar = [p.strip() for p in texto_usuario.split(',')]
+    # Verificar si se proporcionó un nombre de producto en la solicitud
+    nombres_productos = request.form.get('nombres_productos', None)
     
-    # Buscar productos exactos en el CSV local o subido
-    productos_encontrados = buscar_productos_exactos(productos_buscar, df)
+    if nombres_productos:
+        # Si se proporcionan nombres de productos, dividir y realizar la búsqueda para cada uno
+        lista_nombres = [nombre.strip() for nombre in nombres_productos.split(',')]
+        
+        for nombre_producto in lista_nombres:
+            productos_encontrados = buscar_productos(productos, nombre_producto)
 
-    # Generar productos similares con la IA
-    productos_similares_text = generar_productos_similares(productos_buscar, df)
-    
-    # Extraer productos similares de la respuesta generada por la IA
-    productos_similares = pd.DataFrame(columns=['sku', 'nombre', 'marca'])
-    for line in productos_similares_text.splitlines():
-        if line.strip():  # Evitar líneas vacías
-            parts = line.split(',')
-            if len(parts) == 3:
-                sku = parts[0].split(':')[1].strip()
-                nombre = parts[1].split(':')[1].strip()
-                marca = parts[2].split(':')[1].strip()
-                productos_similares = pd.concat([productos_similares, pd.DataFrame({'sku': [sku], 'nombre': [nombre], 'marca': [marca]})], ignore_index=True)
+            if productos_encontrados:
+                producto_encontrado = productos_encontrados[0]  # Tomar solo el primer encontrado
+                categoria_producto = producto_encontrado["categoria"]
+                sku_excluido = producto_encontrado["sku"]
 
-    return productos_encontrados, productos_similares
+                # Buscar productos similares
+                productos_similares = buscar_productos_similares(productos, categoria_producto, sku_excluido)
 
-# Ruta para realizar la búsqueda desde la barra de búsqueda o por archivo
-@app.route('/procesar_busqueda', methods=['POST'])
-def procesar_busqueda():
-    try:
-        # Obtener el nombre del producto o verificar si hay archivo CSV de búsqueda masiva
-        nombre_producto = request.form.get('nombre_producto', None)
-        archivo_busqueda = request.files.get('archivo', None)
+                # Generar respuesta con IA
+                respuesta_ia = generar_respuesta(producto_encontrado, productos_similares)
 
-        if not nombre_producto and not archivo_busqueda:
-            return jsonify({"error": "Debe proporcionar un nombre de producto o un archivo de búsqueda"}), 400
+                resultados.append({
+                    "producto_buscado": nombre_producto,
+                    "producto_encontrado": {
+                        "SKU": producto_encontrado['sku'],
+                        "Nombre": producto_encontrado['nombre_producto'],
+                        "Marca": producto_encontrado['marca'],
+                    },
+                    "productos_similares": respuesta_ia
+                })
+            else:
+                resultados.append({
+                    "producto_buscado": nombre_producto,
+                    "error": "No se encontró ningún producto que coincida."
+                })
 
-        # Cargar productos desde el archivo local
-        df = df_local
+    # Manejar la búsqueda masiva desde un archivo de búsqueda si se proporciona
+    if 'busqueda' in request.files:
+        archivo_busqueda = request.files['busqueda']
+        ruta_busqueda = "busqueda_temp.csv"
+        archivo_busqueda.save(ruta_busqueda)
 
-        if archivo_busqueda:
-            # Si se sube un archivo de búsqueda, cargar los nombres de búsqueda desde el archivo CSV
-            nombres_busqueda = cargar_nombres_de_busqueda(archivo_busqueda.read())
-            nombre_producto = ','.join(nombres_busqueda)  # Unir todos los nombres para la búsqueda
+        # Cargar nombres de búsqueda
+        nombres_busqueda = cargar_nombres_de_busqueda(ruta_busqueda)
 
-        # Generar la respuesta usando el archivo CSV local
-        productos_encontrados, productos_similares = generate(nombre_producto, df)
+        for nombre_producto in nombres_busqueda:
+            productos_encontrados = buscar_productos(productos, nombre_producto)
 
-        # Enviar las respuestas como JSON
-        return jsonify({
-            "productos_encontrados": productos_encontrados.to_dict(orient='records'),
-            "productos_similares": productos_similares.to_dict(orient='records')
-        }), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            if productos_encontrados:
+                producto_encontrado = productos_encontrados[0]  # Tomar solo el primer encontrado
+                categoria_producto = producto_encontrado["categoria"]
+                sku_excluido = producto_encontrado["sku"]
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+                # Buscar productos similares
+                productos_similares = buscar_productos_similares(productos, categoria_producto, sku_excluido)
+
+                # Generar respuesta con IA
+                respuesta_ia = generar_respuesta(producto_encontrado, productos_similares)
+
+                resultados.append({
+                    "producto_buscado": nombre_producto,
+                    "producto_encontrado": {
+                        "SKU": producto_encontrado['sku'],
+                        "Nombre": producto_encontrado['nombre_producto'],
+                        "Marca": producto_encontrado['marca'],
+                    },
+                    "productos_similares": respuesta_ia
+                })
+            else:
+                resultados.append({
+                    "producto_buscado": nombre_producto,
+                    "error": "No se encontró ningún producto que coincida."
+                })
+
+    return jsonify(resultados)
+
+if __name__ == "__main__":
+    app.run(debug=True)
