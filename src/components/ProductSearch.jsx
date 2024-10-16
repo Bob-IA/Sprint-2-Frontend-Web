@@ -21,7 +21,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
     }
   
     try {
-      const response = await fetch('http://localhost:5000/upload', {
+      const response = await fetch('https://ms-ia.tssw.cl/upload', {
         method: 'POST',
         body: formData,
       });
