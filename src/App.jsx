@@ -90,7 +90,7 @@ function App() {
     }
   
     try {
-      const response = await fetch('https://ms-download.tssw.cl/', {
+      const response = await fetch('https://ms-download.tssw.cl/descargar-productos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
