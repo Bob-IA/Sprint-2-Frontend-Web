@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import TopBar from './components/TopBar';
 import ProductSearch from './components/ProductSearch';
-import Welcome from './components/welcome'; 
-import LoadingSpinner from './components/LoadingSpinner'; 
+import Welcome from './components/welcome';
+import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
   const [searchResults, setSearchResults] = useState({
@@ -10,7 +10,7 @@ function App() {
     productos_similares: []
   });
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [showMoreEncontrados, setShowMoreEncontrados] = useState(false);
   const [showMoreSimilares, setShowMoreSimilares] = useState(false);
 
@@ -32,26 +32,25 @@ function App() {
     const productos_similares = results
       .filter(result => !result.error && result.productos_similares)
       .flatMap(result => {
-        if (!result.productos_similares || typeof result.productos_similares !== 'string') {
-          console.log('No se encontraron productos similares válidos.');
-          return [];
-        }
-
-        console.log('Productos similares recibidos antes del parseo:', result.productos_similares);
-        
-        return result.productos_similares.split('\n').map(similar => {
-          const producto = {};
-          const partes = similar.split(', ');
-
-          partes.forEach(parte => {
-            const [clave, valor] = parte.split(': ');
-            if (clave && valor) {
-              producto[clave.trim()] = valor.trim();
+        // Intentar parsear la cadena de productos similares en una lista de objetos
+        try {
+          const productos = result.productos_similares.split('\n').map(similar => {
+            const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*)/);
+            if (partes) {
+              return {
+                SKU: partes[1].trim(),
+                Nombre: partes[2].trim(),
+                Marca: partes[3].trim(),
+              };
             }
+            return null;
           });
 
-          return Object.keys(producto).length > 0 ? producto : null;
-        }).filter(Boolean);
+          return productos.filter(Boolean);
+        } catch (error) {
+          console.error('Error al parsear productos similares:', error);
+          return [];
+        }
       });
 
     console.log('Productos similares parseados:', productos_similares);
@@ -79,7 +78,7 @@ function App() {
       console.error('No hay productos seleccionados para descargar.');
       return;
     }
-  
+
     let productos = [];
     if (descargarTodo) {
       productos = searchResults.productos_encontrados;
@@ -88,7 +87,7 @@ function App() {
         selectedProducts.includes(producto.SKU)
       );
     }
-  
+
     try {
       const response = await fetch('https://ms-download.tssw.cl/descargar-productos', {
         method: 'POST',
@@ -97,11 +96,11 @@ function App() {
         },
         body: JSON.stringify({ productos, descargar_todo: descargarTodo }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Error al descargar el archivo.');
       }
-  
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -114,7 +113,7 @@ function App() {
       console.error('Error durante la descarga:', error);
     }
   };
-  
+
   return (
     <div className="h-screen flex flex-col">
       <TopBar>
@@ -179,13 +178,6 @@ function App() {
                               )}
                             </div>
                           </div>
-                        </li>
-                    ))}
-                    {searchResults.productos_encontrados
-                      .filter(result => result.error)
-                      .map((result, index) => (
-                        <li key={`error-${index}`} className="mb-4 w-full text-red-500">
-                          No se encontró ningún producto que coincida con: {result.producto_buscado}
                         </li>
                     ))}
                   </ul>
