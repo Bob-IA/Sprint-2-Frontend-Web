@@ -78,7 +78,7 @@ function App() {
       console.error('No hay productos seleccionados para descargar.');
       return;
     }
-
+  
     let productos = [];
     if (descargarTodo) {
       productos = searchResults.productos_encontrados;
@@ -87,7 +87,7 @@ function App() {
         selectedProducts.includes(producto.SKU)
       );
     }
-
+  
     try {
       const response = await fetch('https://ms-download.tssw.cl/descargar-productos', {
         method: 'POST',
@@ -96,16 +96,16 @@ function App() {
         },
         body: JSON.stringify({ productos, descargar_todo: descargarTodo }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al descargar el archivo.');
       }
-
+  
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'productos_seleccionados.csv';
+      a.download = 'productos_seleccionados.xlsx';  // Cambiar extensión a .xlsx
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -113,6 +113,7 @@ function App() {
       console.error('Error durante la descarga:', error);
     }
   };
+  
 
   return (
     <div className="h-screen flex flex-col">
@@ -151,36 +152,38 @@ function App() {
                   </div>
 
                   <ul className="flex flex-wrap mt-4">
-                    {searchResults.productos_encontrados
-                      .slice(0, showMoreEncontrados ? searchResults.productos_encontrados.length : 3)
-                      .map((result, index) => (
-                        <li
-                          key={index}
-                          className="mb-4 mr-4 flex-shrink-0 w-1/4 bg-gray-100 p-2 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
-                        >
-                          <div className="flex items-start">
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(result.SKU)}
-                              onChange={() => handleProductSelection(result.SKU)}
-                              className="mr-2 mt-1"
-                            />
-                            <div>
-                              <div className="text-sm font-bold">{result.Nombre}</div>
-                              <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
-                              <div className="text-sm italic">SKU: {result.SKU}</div>
-                              {result.Imagen_URL && (
-                                <img
-                                  src={result.Imagen_URL}
-                                  alt={result.Nombre}
-                                  className="mt-2 w-32 h-32 object-cover rounded-md shadow-sm"
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </li>
-                    ))}
-                  </ul>
+              {searchResults.productos_encontrados
+                .slice(0, showMoreEncontrados ? searchResults.productos_encontrados.length : 3)
+                .map((result, index) => (
+                  <li
+                    key={index}
+                    className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer 
+                      ${selectedProducts.includes(result.SKU) ? 'bg-blue-100 border-2 border-blue-500 shadow-lg' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    onClick={() => handleProductSelection(result.SKU)}
+                  >
+                    <div className="relative">
+                      {/* Icono de selección */}
+                      {selectedProducts.includes(result.SKU) && (
+                        <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
+                          ✓
+                        </span>
+                      )}
+
+                      <div className="text-sm font-bold">{result.Nombre}</div>
+                      <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
+                      <div className="text-sm italic">SKU: {result.SKU}</div>
+                      {result.Imagen_URL && (
+                        <img
+                          src={result.Imagen_URL}
+                          alt={result.Nombre}
+                          className="mt-2 w-32 h-32 object-cover rounded-md shadow-sm"
+                        />
+                      )}
+                    </div>
+                  </li>
+              ))}
+            </ul>
+
                 </>
               )}
 
