@@ -113,20 +113,29 @@ function App() {
       console.error('Error durante la descarga:', error);
     }
   };
-  
+
+  // Función para manejar el clic en el logo y volver a mostrar el componente Welcome
+  const handleLogoClick = () => {
+    setSearchResults({
+      productos_encontrados: [],
+      productos_similares: []
+    });
+    setSelectedProducts([]);
+  };
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar>
+      <TopBar
+        onLogoClick={handleLogoClick} // Pasar la función para manejar el clic en el logo
+      >
         <ProductSearch
           onSearchResults={handleSearchResults}
-          setLoading={setLoading} // Pasar la función setLoading al componente ProductSearch
+          setLoading={setLoading}
         />
       </TopBar>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-full bg-white p-4 overflow-y-auto transition-all duration-300 ease-in-out">
-          {/* Mostrar el componente LoadingSpinner si loading es true */}
           {loading ? (
             <LoadingSpinner />
           ) : (
@@ -152,38 +161,38 @@ function App() {
                   </div>
 
                   <ul className="flex flex-wrap mt-4">
-              {searchResults.productos_encontrados
-                .slice(0, showMoreEncontrados ? searchResults.productos_encontrados.length : 3)
-                .map((result, index) => (
-                  <li
-                    key={index}
-                    className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer 
-                      ${selectedProducts.includes(result.SKU) ? 'bg-blue-100 border-2 border-blue-500 shadow-lg' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => handleProductSelection(result.SKU)}
-                  >
-                    <div className="relative">
-                      {/* Icono de selección */}
-                      {selectedProducts.includes(result.SKU) && (
-                        <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
-                          ✓
-                        </span>
-                      )}
-
-                      <div className="text-sm font-bold">{result.Nombre}</div>
-                      <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
-                      <div className="text-sm italic">SKU: {result.SKU}</div>
-                      {result.Imagen_URL && (
-                        <img
-                          src={result.Imagen_URL}
-                          alt={result.Nombre}
-                          className="mt-2 w-32 h-32 object-cover rounded-md shadow-sm"
-                        />
-                      )}
-                    </div>
-                  </li>
-              ))}
-            </ul>
-
+                    {searchResults.productos_encontrados
+                      .slice(0, showMoreEncontrados ? searchResults.productos_encontrados.length : 3)
+                      .map((result, index) => (
+                        <li
+                          key={index}
+                          className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer ${
+                            selectedProducts.includes(result.SKU)
+                              ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
+                              : 'bg-gray-100 hover:bg-gray-200'
+                          }`}
+                          onClick={() => handleProductSelection(result.SKU)}
+                        >
+                          <div className="relative">
+                            {selectedProducts.includes(result.SKU) && (
+                              <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
+                                ✓
+                              </span>
+                            )}
+                            <div className="text-sm font-bold">{result.Nombre}</div>
+                            <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
+                            <div className="text-sm italic">SKU: {result.SKU}</div>
+                            {result.Imagen_URL && (
+                              <img
+                                src={result.Imagen_URL}
+                                alt={result.Nombre}
+                                className="mt-2 w-32 h-32 object-cover rounded-md shadow-sm"
+                              />
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
                 </>
               )}
 
@@ -224,7 +233,7 @@ function App() {
                             </div>
                           </div>
                         </li>
-                    ))}
+                      ))}
                   </ul>
                 </>
               )}
