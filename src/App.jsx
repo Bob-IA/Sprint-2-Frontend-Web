@@ -3,6 +3,7 @@ import TopBar from './components/TopBar';
 import ProductSearch from './components/ProductSearch';
 import Welcome from './components/welcome';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorModal from './components/ErrorModal';
 
 function App() {
   const [searchResults, setSearchResults] = useState({
@@ -13,14 +14,26 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [showMoreEncontrados, setShowMoreEncontrados] = useState(false);
   const [showMoreSimilares, setShowMoreSimilares] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
 
     setLoading(false);
 
+    if (typeof results === 'string' && results === 'No se encontró ningún producto que coincida.') {
+      console.error(results);
+      setErrorMessage(results);
+      setShowErrorModal(true);
+      setSearchResults({ productos_encontrados: [], productos_similares: [] });
+      return;
+    }
+
     if (!Array.isArray(results) || results.length === 0) {
       console.error('Los resultados de búsqueda no tienen el formato esperado.');
+      setErrorMessage('No se encontraron productos que coincidan con la búsqueda.');
+      setShowErrorModal(true);
       setSearchResults({ productos_encontrados: [], productos_similares: [] });
       return;
     }
@@ -32,7 +45,6 @@ function App() {
     const productos_similares = results
       .filter(result => !result.error && result.productos_similares)
       .flatMap(result => {
-        // Intentar parsear la cadena de productos similares en una lista de objetos
         try {
           const productos = result.productos_similares.split('\n').map(similar => {
             const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*)/);
@@ -45,7 +57,6 @@ function App() {
             }
             return null;
           });
-
           return productos.filter(Boolean);
         } catch (error) {
           console.error('Error al parsear productos similares:', error);
@@ -54,6 +65,11 @@ function App() {
       });
 
     console.log('Productos similares parseados:', productos_similares);
+
+    if (productos_encontrados.length === 0 && productos_similares.length === 0) {
+      setErrorMessage('No se encontraron productos.');
+      setShowErrorModal(true);
+    }
 
     setSearchResults({
       productos_encontrados: productos_encontrados || [],
@@ -76,6 +92,8 @@ function App() {
   const handleDownloadSelected = async (descargarTodo = false) => {
     if (selectedProducts.length === 0 && !descargarTodo) {
       console.error('No hay productos seleccionados para descargar.');
+      setErrorMessage('No hay productos seleccionados para descargar.');
+      setShowErrorModal(true);
       return;
     }
   
@@ -105,12 +123,14 @@ function App() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'productos_seleccionados.xlsx';  // Cambiar extensión a .xlsx
+      a.download = 'productos_seleccionados.xlsx';
       document.body.appendChild(a);
       a.click();
       a.remove();
     } catch (error) {
       console.error('Error durante la descarga:', error);
+      setErrorMessage('Error durante la descarga. Inténtalo de nuevo.');
+      setShowErrorModal(true);
     }
   };
 
@@ -125,9 +145,7 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar
-        onLogoClick={handleLogoClick} // Pasar la función para manejar el clic en el logo
-      >
+      <TopBar onLogoClick={handleLogoClick}>
         <ProductSearch
           onSearchResults={handleSearchResults}
           setLoading={setLoading}
@@ -259,6 +277,14 @@ function App() {
           )}
         </div>
       </div>
+
+      {/* Mostrar el ErrorModal cuando haya un error */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 }
