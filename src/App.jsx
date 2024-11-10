@@ -4,6 +4,7 @@ import ProductSearch from './components/ProductSearch';
 import Welcome from './components/welcome';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorModal from './components/ErrorModal';
+import ChatWidget from './components/ChatWidget'; // Importar el nuevo widget de chat
 
 function App() {
   const [searchResults, setSearchResults] = useState({
@@ -63,8 +64,6 @@ function App() {
           return [];
         }
       });
-
-    console.log('Productos similares parseados:', productos_similares);
 
     if (productos_encontrados.length === 0 && productos_similares.length === 0) {
       setErrorMessage('No se encontraron productos.');
@@ -285,6 +284,9 @@ function App() {
           onClose={() => setShowErrorModal(false)}
         />
       )}
+
+      {/* Añadir el widget de chat flotante */}
+      <ChatWidget />
     </div>
   );
 }
