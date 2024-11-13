@@ -3,7 +3,12 @@ import React from 'react';
 function TopBar({ user, children, onLogoClick }) {
   return (
     <div className="bg-blue-600 text-white px-4 py-2 flex justify-between items-center relative">
-      <h1 className="text-xl font-bold mr-8">Bob IA</h1> {/* Añadido margen derecho */}
+      <h1 
+        className="text-xl font-bold mr-8 cursor-pointer" 
+        onClick={onLogoClick} // Hacemos que el título sea clicable
+      >
+        Bob IA
+      </h1>
       <div className="flex-1 flex justify-center mx-8">
         {children}
       </div>
