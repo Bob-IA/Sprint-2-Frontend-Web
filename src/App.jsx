@@ -34,9 +34,9 @@ function App() {
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
-
+  
     setLoading(false);
-
+  
     if (typeof results === 'string' && results === 'No se encontró ningún producto que coincida.') {
       console.error(results);
       setErrorMessage(results);
@@ -44,7 +44,7 @@ function App() {
       setSearchResults([]);
       return;
     }
-
+  
     if (!Array.isArray(results) || results.length === 0) {
       console.error('Los resultados de búsqueda no tienen el formato esperado.');
       setErrorMessage('No se encontraron productos que coincidan con la búsqueda.');
@@ -52,33 +52,45 @@ function App() {
       setSearchResults([]);
       return;
     }
-
+  
     const groupedResults = results.map((result) => {
-      const productosSimilares = (result.productos_similares || []).split('\n').map(similar => {
-        const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*)/);
-        if (partes) {
-          return {
-            SKU: partes[1].trim(),
-            Nombre: partes[2].trim(),
-            Marca: partes[3].trim(),
-          };
-        }
-        return null;
-      }).filter(Boolean);
-
-      // Mezclar productos exactos y similares
-      const productosCombinados = combineAndDeduplicate(result.productos_exactos || [], productosSimilares);
-
+      const productosSimilares = (result.productos_similares || [])
+        .split('\n')
+        .map((similar) => {
+          const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*?), Costo: (.*)/);
+          if (partes) {
+            return {
+              SKU: partes[1].trim(),
+              Nombre: partes[2].trim(),
+              Marca: partes[3].trim(),
+              Costo: parseFloat(partes[4].trim()).toFixed(2) || '0.00', // Procesar costo como número
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+  
+      const productosExactos = (result.productos_exactos || []).map((producto) => ({
+        SKU: producto.SKU,
+        Nombre: producto.Nombre,
+        Marca: producto.Marca,
+        Imagen: producto.Imagen_URL,
+        Costo: parseFloat(producto.Costo || 0).toFixed(2), // Procesar costo
+      }));
+  
+      const productosCombinados = combineAndDeduplicate(productosExactos, productosSimilares);
+  
       return {
         productoBuscado: capitalize(result.producto_buscado), // Capitalizar término buscado
         productosCombinados,
       };
     });
-
+  
     setSearchResults(groupedResults);
     setSelectedProducts([]);
     setExpandedTerms({}); // Reinicia los estados de expansión
   };
+  
 
   const handleProductSelection = (sku) => {
     setSelectedProducts((prevSelected) => {
@@ -189,13 +201,16 @@ function App() {
       >
         <div className="relative">
           {selectedProducts.includes(producto.SKU) && (
-            <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
+            <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md w-6 h-6 flex items-center justify-center">
               ✓
             </span>
           )}
           <div className="text-sm font-bold">{producto.Nombre}</div>
           <div className="text-sm"><strong>Marca:</strong> {producto.Marca}</div>
           <div className="text-sm italic">SKU: {producto.SKU}</div>
+          <div className="text-sm font-semibold text-green-500">
+            ${producto.Costo || '0.00'}
+          </div>
         </div>
       </li>
     ))}
