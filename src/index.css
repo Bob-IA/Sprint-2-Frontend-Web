@@ -12,3 +12,64 @@
     transform: rotate(360deg);
   }
 }
+@keyframes blink {
+  0%, 20% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes moveUp {
+  0%, 20% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+}
+
+.dot-1 {
+  animation: blink 1.4s infinite step-start 0s, moveUp 1.4s infinite step-start 0s;
+}
+
+.dot-2 {
+  animation: blink 1.4s infinite step-start 0.2s, moveUp 1.4s infinite step-start 0.2s;
+}
+
+.dot-3 {
+  animation: blink 1.4s infinite step-start 0.4s, moveUp 1.4s infinite step-start 0.4s;
+}
+
+.letter-1 {
+  animation: moveUp 1.4s infinite step-start 0s;
+}
+
+.letter-2 {
+  animation: moveUp 1.4s infinite step-start 0.1s;
+}
+
+.letter-3 {
+  animation: moveUp 1.4s infinite step-start 0.2s;
+}
+
+.letter-4 {
+  animation: moveUp 1.4s infinite step-start 0.3s;
+}
+
+.letter-5 {
+  animation: moveUp 1.4s infinite step-start 0.4s;
+}
+
+.letter-6 {
+  animation: moveUp 1.4s infinite step-start 0.5s;
+}
+
+.letter-7 {
+  animation: moveUp 1.4s infinite step-start 0.6s;
+}
+
+.letter-8 {
+  animation: moveUp 1.4s infinite step-start 0.7s;
+}

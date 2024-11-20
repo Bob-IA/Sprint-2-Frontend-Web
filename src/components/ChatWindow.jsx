@@ -39,12 +39,12 @@ const ChatWindow = ({ onClose }) => {
       }
 
       if (data.resultados_busqueda && data.resultados_busqueda.length > 0) {
-        const resultados = data.resultados_busqueda.map((producto, index) => ({
-          SKU: producto.SKU || 'SKU no disponible',
-          nombre: producto.nombre_producto || 'Nombre no disponible',
-          marca: producto.Marca || 'Marca no disponible',
-          disponibilidad: producto.disponibilidad || 'Disponibilidad no especificada',
-          precio: producto.precio ? `$${producto.precio}` : 'Precio no especificado',
+        const resultados = data.resultados_busqueda.map((producto) => ({
+          SKU: producto.sku || 'SKU no disponible',
+          nombre: producto.nombre || 'Nombre no disponible',
+          marca: producto.marca || 'Marca no disponible',
+          categoria: producto.categoria || 'Categoría no especificada',
+          imagen: producto['URL de la Imagen'] || 'https://via.placeholder.com/150',
         }));
 
         setMessages((prevMessages) => [
@@ -109,8 +109,8 @@ const ChatWindow = ({ onClose }) => {
                     <div className="text-sm font-bold">{producto.nombre}</div>
                     <div className="text-sm"><strong>Marca:</strong> {producto.marca}</div>
                     <div className="text-sm italic">SKU: {producto.SKU}</div>
-                    <div className="text-sm">{producto.disponibilidad}</div>
-                    <div className="text-sm font-semibold">{producto.precio}</div>
+                    <div className="text-sm"><strong>Categoría:</strong> {producto.categoria}</div>
+                    <img src={producto.imagen} alt={producto.nombre} className="mt-2 w-full h-20 object-contain" />
                   </li>
                 ))}
               </ul>
