@@ -5,7 +5,7 @@ const ChatWindow = ({ onClose }) => {
   const [inputValue, setInputValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Estado para controlar la animación de carga
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async () => {
     if (inputValue.trim() === '') return;
@@ -13,8 +13,8 @@ const ChatWindow = ({ onClose }) => {
     const userMessage = inputValue;
     setMessages([...messages, { sender: 'user', text: userMessage }]);
     setInputValue('');
-    setErrorMessage(''); // Resetear cualquier mensaje de error previo
-    setIsLoading(true); // Activar la animación de carga
+    setErrorMessage('');
+    setIsLoading(true);
 
     try {
       const response = await fetch('https://ms-chat.tssw.cl/chat', {
@@ -39,17 +39,25 @@ const ChatWindow = ({ onClose }) => {
       }
 
       if (data.resultados_busqueda && data.resultados_busqueda.length > 0) {
-        const resultados = data.resultados_busqueda.map((producto) => ({
-          SKU: producto.sku || 'SKU no disponible',
-          nombre: producto.nombre || 'Nombre no disponible',
-          marca: producto.marca || 'Marca no disponible',
-          categoria: producto.categoria || 'Categoría no especificada',
-          imagen: producto['URL de la Imagen'] || 'https://via.placeholder.com/150',
-        }));
+        const resultados = data.resultados_busqueda.map((resultado) => {
+          const productosExactos = resultado.productos_exactos || [];
+          const productosSimilares = resultado.productos_similares || [];
+          const productosMapeados = [...productosExactos, ...productosSimilares].map((producto) => ({
+            SKU: producto.SKU || producto.sku || 'SKU no disponible',
+            nombre: producto.Nombre || producto.nombre_producto || 'Nombre no disponible',
+            marca: producto.Marca || producto.marca || 'Marca no disponible',
+            categoria: producto.Categoria || producto.categoria || 'Categoría no especificada',
+            imagen: producto.Imagen_URL || producto['imagen_url'] || 'https://via.placeholder.com/150',
+          }));
+          return {
+            productoBuscado: resultado.producto_buscado,
+            productos: productosMapeados,
+          };
+        });
 
         setMessages((prevMessages) => [
           ...prevMessages,
-          { sender: 'bot', text: 'Resultados de búsqueda:', productos: resultados },
+          { sender: 'bot', text: 'Resultados de búsqueda:', resultados },
         ]);
       } else {
         setMessages((prevMessages) => [
@@ -65,7 +73,7 @@ const ChatWindow = ({ onClose }) => {
         { sender: 'bot', text: 'Error al obtener respuesta. Por favor, intenta de nuevo.' },
       ]);
     } finally {
-      setIsLoading(false); // Desactivar la animación de carga
+      setIsLoading(false);
     }
   };
 
@@ -94,27 +102,14 @@ const ChatWindow = ({ onClose }) => {
             <div className={`inline-block p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
               {msg.text}
             </div>
-            {msg.productos && (
-              <ul className="flex flex-wrap mt-4">
-                {msg.productos.map((producto, idx) => (
-                  <li
-                    key={idx}
-                    className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer ${
-                      selectedProducts.includes(producto.SKU)
-                        ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                    onClick={() => handleProductSelection(producto.SKU)}
-                  >
-                    <div className="text-sm font-bold">{producto.nombre}</div>
-                    <div className="text-sm"><strong>Marca:</strong> {producto.marca}</div>
-                    <div className="text-sm italic">SKU: {producto.SKU}</div>
-                    <div className="text-sm"><strong>Categoría:</strong> {producto.categoria}</div>
-                    <img src={producto.imagen} alt={producto.nombre} className="mt-2 w-full h-20 object-contain" />
-                  </li>
-                ))}
-              </ul>
-            )}
+            {msg.resultados && msg.resultados.map((resultado, resIndex) => (
+              <div key={resIndex} className="mt-4">
+                <h3 className="text-lg font-semibold text-blue-500 mb-2">
+                  {resultado.productoBuscado}:
+                </h3>
+                <ProductList productos={resultado.productos} handleProductSelection={handleProductSelection} selectedProducts={selectedProducts} />
+              </div>
+            ))}
           </div>
         ))}
         {isLoading && (
@@ -141,6 +136,47 @@ const ChatWindow = ({ onClose }) => {
           Enviar
         </button>
       </div>
+    </div>
+  );
+};
+
+const ProductList = ({ productos, handleProductSelection, selectedProducts }) => {
+  const [showAll, setShowAll] = useState(false);
+  const visibleProductos = showAll ? productos : productos.slice(0, 6);
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-4">
+        {visibleProductos.map((producto, idx) => (
+          <div
+            key={idx}
+            className={`p-4 rounded-lg shadow-md cursor-pointer transition-transform transform hover:scale-105 ${
+              selectedProducts.includes(producto.SKU) ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-100'
+            }`}
+            onClick={() => handleProductSelection(producto.SKU)}
+          >
+            <img
+              src={producto.imagen}
+              alt={producto.nombre}
+              className="w-full h-20 object-contain mb-2"
+            />
+            <h3 className="text-sm font-bold">{producto.nombre}</h3>
+            <p className="text-xs"><strong>Marca:</strong> {producto.marca}</p>
+            <p className="text-xs"><strong>Categoría:</strong> {producto.categoria}</p>
+            <p className="text-xs italic"><strong>SKU:</strong> {producto.SKU}</p>
+          </div>
+        ))}
+      </div>
+      {productos.length > 6 && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-blue-600 font-semibold hover:underline"
+          >
+            {showAll ? 'Mostrar menos' : 'Mostrar más'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

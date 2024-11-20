@@ -4,19 +4,33 @@ import ProductSearch from './components/ProductSearch';
 import Welcome from './components/welcome';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorModal from './components/ErrorModal';
-import ChatWidget from './components/ChatWidget'; // Importar el nuevo widget de chat
+import ChatWidget from './components/ChatWidget';
+
+// Función para capitalizar la primera letra
+const capitalize = (text) => {
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+};
+
+// Función para combinar productos y eliminar duplicados
+const combineAndDeduplicate = (exactos, similares) => {
+  const allProducts = [...exactos, ...similares];
+  const uniqueProducts = allProducts.reduce((acc, product) => {
+    if (!acc.some((p) => p.SKU === product.SKU)) {
+      acc.push(product);
+    }
+    return acc;
+  }, []);
+  return uniqueProducts;
+};
 
 function App() {
-  const [searchResults, setSearchResults] = useState({
-    productos_encontrados: [],
-    productos_similares: []
-  });
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showMoreEncontrados, setShowMoreEncontrados] = useState(false);
-  const [showMoreSimilares, setShowMoreSimilares] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [expandedTerms, setExpandedTerms] = useState({}); // Estado para manejar la expansión de términos
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
@@ -27,7 +41,7 @@ function App() {
       console.error(results);
       setErrorMessage(results);
       setShowErrorModal(true);
-      setSearchResults({ productos_encontrados: [], productos_similares: [] });
+      setSearchResults([]);
       return;
     }
 
@@ -35,47 +49,35 @@ function App() {
       console.error('Los resultados de búsqueda no tienen el formato esperado.');
       setErrorMessage('No se encontraron productos que coincidan con la búsqueda.');
       setShowErrorModal(true);
-      setSearchResults({ productos_encontrados: [], productos_similares: [] });
+      setSearchResults([]);
       return;
     }
 
-    const productos_encontrados = results
-      .filter(result => !result.error && result.productos_exactos)
-      .flatMap(result => result.productos_exactos);
-
-    const productos_similares = results
-      .filter(result => !result.error && result.productos_similares)
-      .flatMap(result => {
-        try {
-          const productos = result.productos_similares.split('\n').map(similar => {
-            const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*)/);
-            if (partes) {
-              return {
-                SKU: partes[1].trim(),
-                Nombre: partes[2].trim(),
-                Marca: partes[3].trim(),
-              };
-            }
-            return null;
-          });
-          return productos.filter(Boolean);
-        } catch (error) {
-          console.error('Error al parsear productos similares:', error);
-          return [];
+    const groupedResults = results.map((result) => {
+      const productosSimilares = (result.productos_similares || []).split('\n').map(similar => {
+        const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*)/);
+        if (partes) {
+          return {
+            SKU: partes[1].trim(),
+            Nombre: partes[2].trim(),
+            Marca: partes[3].trim(),
+          };
         }
-      });
+        return null;
+      }).filter(Boolean);
 
-    if (productos_encontrados.length === 0 && productos_similares.length === 0) {
-      setErrorMessage('No se encontraron productos.');
-      setShowErrorModal(true);
-    }
+      // Mezclar productos exactos y similares
+      const productosCombinados = combineAndDeduplicate(result.productos_exactos || [], productosSimilares);
 
-    setSearchResults({
-      productos_encontrados: productos_encontrados || [],
-      productos_similares: productos_similares || []
+      return {
+        productoBuscado: capitalize(result.producto_buscado), // Capitalizar término buscado
+        productosCombinados,
+      };
     });
 
+    setSearchResults(groupedResults);
     setSelectedProducts([]);
+    setExpandedTerms({}); // Reinicia los estados de expansión
   };
 
   const handleProductSelection = (sku) => {
@@ -88,6 +90,13 @@ function App() {
     });
   };
 
+  const toggleExpanded = (termIndex) => {
+    setExpandedTerms((prevState) => ({
+      ...prevState,
+      [termIndex]: !prevState[termIndex],
+    }));
+  };
+
   const handleDownloadSelected = async (descargarTodo = false) => {
     if (selectedProducts.length === 0 && !descargarTodo) {
       console.error('No hay productos seleccionados para descargar.');
@@ -95,16 +104,18 @@ function App() {
       setShowErrorModal(true);
       return;
     }
-  
+
     let productos = [];
     if (descargarTodo) {
-      productos = searchResults.productos_encontrados;
+      productos = searchResults.flatMap(result => result.productosCombinados);
     } else {
-      productos = searchResults.productos_encontrados.filter(producto =>
-        selectedProducts.includes(producto.SKU)
+      productos = searchResults.flatMap(result =>
+        result.productosCombinados.filter(producto =>
+          selectedProducts.includes(producto.SKU)
+        )
       );
     }
-  
+
     try {
       const response = await fetch('https://ms-download.tssw.cl/descargar-productos', {
         method: 'POST',
@@ -113,11 +124,11 @@ function App() {
         },
         body: JSON.stringify({ productos, descargar_todo: descargarTodo }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Error al descargar el archivo.');
       }
-  
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -133,12 +144,8 @@ function App() {
     }
   };
 
-  // Función para manejar el clic en el logo y volver a mostrar el componente Welcome
   const handleLogoClick = () => {
-    setSearchResults({
-      productos_encontrados: [],
-      productos_similares: []
-    });
+    setSearchResults([]);
     setSelectedProducts([]);
   };
 
@@ -157,106 +164,57 @@ function App() {
             <LoadingSpinner />
           ) : (
             <>
-              {searchResults.productos_encontrados.length === 0 &&
-                searchResults.productos_similares.length === 0 && (
-                  <Welcome />
-                )}
+              {searchResults.length === 0 && <Welcome />}
 
-              {/* Sección de productos encontrados */}
-              {searchResults.productos_encontrados.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold">Productos Encontrados</h2>
-                    {searchResults.productos_encontrados.length > 3 && (
-                      <button
-                        className="text-sm px-4 py-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-lg transition-transform duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => setShowMoreEncontrados(!showMoreEncontrados)}
-                      >
-                        {showMoreEncontrados ? 'Mostrar Menos' : 'Mostrar Más'}
-                      </button>
-                    )}
-                  </div>
+              {/* Mostrar resultados por término */}
+              {searchResults.map((result, termIndex) => (
+                <div key={termIndex} className="mt-6">
+                  <h2 className="text-lg font-bold text-blue-500 mb-4">
+                    {result.productoBuscado}:
+                  </h2>
 
+                  {/* Productos Combinados */}
                   <ul className="flex flex-wrap mt-4">
-                    {searchResults.productos_encontrados
-                      .slice(0, showMoreEncontrados ? searchResults.productos_encontrados.length : 3)
-                      .map((result, index) => (
-                        <li
-                          key={index}
-                          className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer ${
-                            selectedProducts.includes(result.SKU)
-                              ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
-                              : 'bg-gray-100 hover:bg-gray-200'
-                          }`}
-                          onClick={() => handleProductSelection(result.SKU)}
-                        >
-                          <div className="relative">
-                            {selectedProducts.includes(result.SKU) && (
-                              <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
-                                ✓
-                              </span>
-                            )}
-                            <div className="text-sm font-bold">{result.Nombre}</div>
-                            <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
-                            <div className="text-sm italic">SKU: {result.SKU}</div>
-                            {result.Imagen_URL && (
-                              <img
-                                src={result.Imagen_URL}
-                                alt={result.Nombre}
-                                className="mt-2 w-32 h-32 object-cover rounded-md shadow-sm"
-                              />
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                </>
-              )}
+  {(result.productosCombinados || [])
+    .slice(0, expandedTerms[termIndex] ? result.productosCombinados.length : 6)
+    .map((producto, index) => (
+      <li
+        key={index}
+        className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer ${
+          selectedProducts.includes(producto.SKU)
+            ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
+            : 'bg-gray-100 hover:bg-gray-200'
+        }`}
+        onClick={() => handleProductSelection(producto.SKU)}
+      >
+        <div className="relative">
+          {selectedProducts.includes(producto.SKU) && (
+            <span className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-1 shadow-md">
+              ✓
+            </span>
+          )}
+          <div className="text-sm font-bold">{producto.Nombre}</div>
+          <div className="text-sm"><strong>Marca:</strong> {producto.Marca}</div>
+          <div className="text-sm italic">SKU: {producto.SKU}</div>
+        </div>
+      </li>
+    ))}
+</ul>
 
-              {/* Sección de productos similares */}
-              {searchResults.productos_similares.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between mt-8">
-                    <h2 className="text-lg font-bold">Productos Similares</h2>
-                    {searchResults.productos_similares.length > 3 && (
+                  {result.productosCombinados.length > 6 && (
+                    <div className="mt-4 text-center">
                       <button
-                        className="text-sm px-4 py-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-lg transition-transform duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => setShowMoreSimilares(!showMoreSimilares)}
+                        className="text-blue-600 font-semibold hover:underline"
+                        onClick={() => toggleExpanded(termIndex)}
                       >
-                        {showMoreSimilares ? 'Mostrar Menos' : 'Mostrar Más'}
+                        {expandedTerms[termIndex] ? 'Mostrar Menos' : 'Mostrar Más'}
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
+              ))}
 
-                  <ul className="flex flex-wrap mt-4">
-                    {searchResults.productos_similares
-                      .slice(0, showMoreSimilares ? searchResults.productos_similares.length : 3)
-                      .map((result, index) => (
-                        <li
-                          key={index}
-                          className="mb-4 mr-4 flex-shrink-0 w-1/4 bg-gray-100 p-2 rounded-lg shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
-                        >
-                          <div className="flex items-start">
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(result.SKU)}
-                              onChange={() => handleProductSelection(result.SKU)}
-                              className="mr-2 mt-1"
-                            />
-                            <div>
-                              <div className="text-sm font-bold">{result.Nombre}</div>
-                              <div className="text-sm"><strong>Marca:</strong> {result.Marca}</div>
-                              <div className="text-sm italic">SKU: {result.SKU}</div>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                </>
-              )}
-
-              {(searchResults.productos_encontrados.length > 0 ||
-                searchResults.productos_similares.length > 0) && (
+              {searchResults.length > 0 && (
                 <div className="mt-6">
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4"
@@ -277,7 +235,6 @@ function App() {
         </div>
       </div>
 
-      {/* Mostrar el ErrorModal cuando haya un error */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}
@@ -285,7 +242,6 @@ function App() {
         />
       )}
 
-      {/* Añadir el widget de chat flotante */}
       <ChatWidget />
     </div>
   );
