@@ -47,7 +47,7 @@ const ChatWindow = ({ onClose }) => {
             nombre: producto.Nombre || producto.nombre_producto || 'Nombre no disponible',
             marca: producto.Marca || producto.marca || 'Marca no disponible',
             categoria: producto.Categoria || producto.categoria || 'Categoría no especificada',
-            imagen: producto.Imagen_URL || producto['imagen_url'] || 'https://via.placeholder.com/150',
+            costo: parseInt(producto.Costo || 0, 10), // Asegurar que el costo sea un entero
           }));
           return {
             productoBuscado: resultado.producto_buscado,
@@ -155,15 +155,11 @@ const ProductList = ({ productos, handleProductSelection, selectedProducts }) =>
             }`}
             onClick={() => handleProductSelection(producto.SKU)}
           >
-            <img
-              src={producto.imagen}
-              alt={producto.nombre}
-              className="w-full h-20 object-contain mb-2"
-            />
             <h3 className="text-sm font-bold">{producto.nombre}</h3>
             <p className="text-xs"><strong>Marca:</strong> {producto.marca}</p>
             <p className="text-xs"><strong>Categoría:</strong> {producto.categoria}</p>
             <p className="text-xs italic"><strong>SKU:</strong> {producto.SKU}</p>
+            <p className="text-xs font-semibold text-green-500"><strong>Precio:</strong> ${producto.costo}</p>
           </div>
         ))}
       </div>
