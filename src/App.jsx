@@ -27,6 +27,7 @@ const combineAndDeduplicate = (exactos, similares) => {
 function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0); // Estado para el precio total
   const [loading, setLoading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -88,14 +89,17 @@ function App() {
 
     setSearchResults(groupedResults);
     setSelectedProducts([]);
+    setTotalPrice(0); // Reinicia el precio total
     setExpandedTerms({}); // Reinicia los estados de expansión
   };
 
-  const handleProductSelection = (sku) => {
+  const handleProductSelection = (sku, costo) => {
     setSelectedProducts((prevSelected) => {
       if (prevSelected.includes(sku)) {
+        setTotalPrice((prevTotal) => prevTotal - costo);
         return prevSelected.filter((item) => item !== sku);
       } else {
+        setTotalPrice((prevTotal) => prevTotal + costo);
         return [...prevSelected, sku];
       }
     });
@@ -158,6 +162,7 @@ function App() {
   const handleLogoClick = () => {
     setSearchResults([]);
     setSelectedProducts([]);
+    setTotalPrice(0); // Reinicia el precio total
   };
 
   return (
@@ -196,7 +201,7 @@ function App() {
                               ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
                               : 'bg-gray-100 hover:bg-gray-200'
                           }`}
-                          onClick={() => handleProductSelection(producto.SKU)}
+                          onClick={() => handleProductSelection(producto.SKU, producto.Costo)}
                         >
                           <div className="relative">
                             {selectedProducts.includes(producto.SKU) && (
@@ -230,6 +235,9 @@ function App() {
 
               {searchResults.length > 0 && (
                 <div className="mt-6">
+                  <div className="text-lg font-bold mb-4">
+                    Precio Total: ${totalPrice}
+                  </div>
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4"
                     onClick={() => handleDownloadSelected(false)}
