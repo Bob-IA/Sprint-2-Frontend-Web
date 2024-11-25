@@ -48,7 +48,7 @@ function App() {
 
     if (!Array.isArray(results) || results.length === 0) {
       console.error('Los resultados de búsqueda no tienen el formato esperado.');
-      setErrorMessage('No se encontraron productos que coincidan con la búsqueda.');
+      setErrorMessage('Error al realizar la busqueda.');
       setShowErrorModal(true);
       setSearchResults([]);
       return;

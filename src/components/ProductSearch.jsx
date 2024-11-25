@@ -1,44 +1,53 @@
-import React, { useState } from 'react';
-import ErrorModal from './ErrorModal';
+import React, { useState } from "react";
+import ErrorModal from "./ErrorModal";
 
 function ProductSearch({ onSearchResults, setLoading }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchFile, setSearchFile] = useState(null);
-  const [fileName, setFileName] = useState('');
+  const [fileName, setFileName] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     const formData = new FormData();
-  
+
     if (searchFile) {
-      formData.append('busqueda', searchFile);  // Enviar archivo CSV de búsqueda
-    } else if (searchTerm) {
-      formData.append('nombres_productos', searchTerm);  // Enviar término de búsqueda desde la barra
+      formData.append("archivo", searchFile); // Campo ajustado para el backend
+    } else if (searchTerm.trim()) {
+      formData.append("nombres_productos", searchTerm.trim());
     } else {
-      console.error('Debe ingresar un nombre de producto o cargar un archivo');
+      setErrorMessage("Debes ingresar un nombre o cargar un archivo.");
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
-  
+
     try {
-      const response = await fetch('https://ms-ia.tssw.cl/upload', {
-        method: 'POST',
+      const response = await fetch("https://ms-ia.tssw.cl/upload", {
+        method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
-        throw new Error('Error al procesar la búsqueda');
+        throw new Error("Error al procesar la búsqueda");
       }
-  
+
       const data = await response.json();
+
+      // Validar si la estructura de la respuesta es la esperada
+      if (!Array.isArray(data)) {
+        throw new Error("Estructura inesperada en la respuesta del servidor");
+      }
+
       onSearchResults(data);
     } catch (error) {
-      console.error('Error durante la búsqueda:', error);
-      setErrorMessage('Error al conectar con el servicio. Inténtalo de nuevo mas tarde.');
+      console.error("Error durante la búsqueda:", error);
+      setErrorMessage(
+        error.message || "Error al conectar con el servicio. Inténtalo de nuevo más tarde."
+      );
       setShowErrorModal(true);
     } finally {
       setLoading(false);
@@ -48,6 +57,12 @@ function ProductSearch({ onSearchResults, setLoading }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const validTypes = ["text/csv"];
+      if (!validTypes.includes(file.type)) {
+        setErrorMessage("El archivo debe ser un CSV válido.");
+        setShowErrorModal(true);
+        return;
+      }
       setSearchFile(file);
       setFileName(file.name);
     }
@@ -55,7 +70,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
 
   const handleRemoveFile = () => {
     setSearchFile(null);
-    setFileName('');
+    setFileName("");
   };
 
   return (
@@ -69,14 +84,26 @@ function ProductSearch({ onSearchResults, setLoading }) {
             placeholder="Buscar productos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ paddingRight: searchFile ? '7rem' : '4rem' }} // Ajustar el padding para dejar espacio al icono
+            disabled={!!searchFile} // Deshabilitar si hay un archivo cargado
+            style={{ paddingRight: searchFile ? "7rem" : "4rem" }}
           />
 
           {/* Ícono de clip para subir archivo */}
           <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer">
             <input type="file" className="hidden" onChange={handleFileChange} />
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500 hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656L7.05 9.879a6 6 0 008.485 8.485L17 16" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-gray-500 hover:text-blue-600 transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656L7.05 9.879a6 6 0 008.485 8.485L17 16"
+              />
             </svg>
           </label>
         </div>
@@ -103,6 +130,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
         )}
       </form>
 
+      {/* Mostrar mensaje de error en un modal */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}
