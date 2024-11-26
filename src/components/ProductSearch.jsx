@@ -14,8 +14,9 @@ function ProductSearch({ onSearchResults, setLoading }) {
 
     const formData = new FormData();
 
+    // Verificar si se cargó un archivo
     if (searchFile) {
-      formData.append("archivo", searchFile); // Campo ajustado para el backend
+      formData.append("busqueda", searchFile); // Cambiar el campo a "busqueda"
     } else if (searchTerm.trim()) {
       formData.append("nombres_productos", searchTerm.trim());
     } else {
@@ -26,18 +27,20 @@ function ProductSearch({ onSearchResults, setLoading }) {
     }
 
     try {
+      // Enviar los datos al backend
       const response = await fetch("https://ms-ia.tssw.cl/upload", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Error al procesar la búsqueda");
+        const errorDetails = await response.text();
+        throw new Error(`Error en la solicitud: ${errorDetails}`);
       }
 
       const data = await response.json();
 
-      // Validar si la estructura de la respuesta es la esperada
+      // Verificar que la estructura de respuesta sea válida
       if (!Array.isArray(data)) {
         throw new Error("Estructura inesperada en la respuesta del servidor");
       }
@@ -77,7 +80,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
     <>
       <form className="flex items-center w-full" onSubmit={handleSearch}>
         <div className="relative w-full max-w-3xl">
-          {/* Input de búsqueda */}
           <input
             type="text"
             className="w-full px-6 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"
@@ -88,7 +90,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
             style={{ paddingRight: searchFile ? "7rem" : "4rem" }}
           />
 
-          {/* Ícono de clip para subir archivo */}
           <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer">
             <input type="file" className="hidden" onChange={handleFileChange} />
             <svg
@@ -115,7 +116,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
           Buscar
         </button>
 
-        {/* Mostrar el nombre del archivo cargado y la opción para eliminarlo */}
         {fileName && (
           <div className="flex items-center ml-4 p-2 bg-gray-100 rounded-lg shadow-sm">
             <span className="text-sm text-gray-700 mr-2">{fileName}</span>
@@ -130,7 +130,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
         )}
       </form>
 
-      {/* Mostrar mensaje de error en un modal */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}

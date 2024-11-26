@@ -35,9 +35,9 @@ function App() {
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
-
+  
     setLoading(false);
-
+  
     if (typeof results === 'string' && results === 'No se encontró ningún producto que coincida.') {
       console.error(results);
       setErrorMessage(results);
@@ -45,53 +45,65 @@ function App() {
       setSearchResults([]);
       return;
     }
-
+  
     if (!Array.isArray(results) || results.length === 0) {
       console.error('Los resultados de búsqueda no tienen el formato esperado.');
-      setErrorMessage('Error al realizar la busqueda.');
+      setErrorMessage('Error al realizar la búsqueda.');
       setShowErrorModal(true);
       setSearchResults([]);
       return;
     }
-
+  
     const groupedResults = results.map((result) => {
-      const productosSimilares = (result.productos_similares || [])
-        .split('\n')
-        .map((similar) => {
-          const partes = similar.match(/SKU: (.*?), Nombre: (.*?), Marca: (.*?), Costo: (.*)/);
-          if (partes) {
-            return {
-              SKU: partes[1].trim(),
-              Nombre: partes[2].trim(),
-              Marca: partes[3].trim(),
-              Costo: Math.round(parseFloat(partes[4].trim())), // Redondear el costo
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
-
+      // Verificar si productos_similares es un string o un array
+      const productosSimilares =
+        typeof result.productos_similares === 'string'
+          ? result.productos_similares
+              .split('\n')
+              .map((similar) => {
+                const partes = similar.match(
+                  /SKU: (.*?), Nombre: (.*?), Marca: (.*?), Costo: ([\d.]+)/
+                );
+                if (partes) {
+                  return {
+                    SKU: partes[1].trim(),
+                    Nombre: partes[2].trim(),
+                    Marca: partes[3].trim(),
+                    Costo: Math.round(parseFloat(partes[4].trim())),
+                  };
+                }
+                return null;
+              })
+              .filter(Boolean)
+          : (result.productos_similares || []).map((similar) => ({
+              SKU: similar.SKU,
+              Nombre: similar.Nombre,
+              Marca: similar.Marca,
+              Costo: Math.round(parseFloat(similar.Costo || 0)), // Manejar costos faltantes
+            }));
+  
       const productosExactos = (result.productos_exactos || []).map((producto) => ({
         SKU: producto.SKU,
         Nombre: producto.Nombre,
         Marca: producto.Marca,
         Imagen: producto.Imagen_URL,
-        Costo: Math.round(parseFloat(producto.Costo)), // Redondear el costo
+        Costo: Math.round(parseFloat(producto.Costo || 0)), // Manejar costos faltantes
       }));
-
+  
       const productosCombinados = combineAndDeduplicate(productosExactos, productosSimilares);
-
+  
       return {
         productoBuscado: capitalize(result.producto_buscado), // Capitalizar término buscado
         productosCombinados,
       };
     });
-
+  
     setSearchResults(groupedResults);
     setSelectedProducts([]);
     setTotalPrice(0); // Reinicia el precio total
     setExpandedTerms({}); // Reinicia los estados de expansión
   };
+  
 
   const handleProductSelection = (sku, costo) => {
     setSelectedProducts((prevSelected) => {
