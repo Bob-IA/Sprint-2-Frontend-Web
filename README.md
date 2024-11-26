@@ -11,7 +11,7 @@ Este proyecto, desarrollado como parte de un trabajo de titulación en la **Univ
 3. **Interfaz Amigable**: Una interfaz web sencilla y eficiente desarrollada con **React**, que incluye:
    - Búsqueda individual o masiva.
    - Descarga de productos seleccionados.
-   - Chat impulsado por IA para resolver dudas técnicas.
+   - Chat impulsado por IA para consultas sobre productos.
 4. **Optimización de Procesos**: Automatización de la identificación de productos para mejorar la productividad de los ejecutivos de cuentas.
 
 ---
