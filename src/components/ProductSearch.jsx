@@ -79,7 +79,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
   return (
     <>
       <form className="flex items-center w-full" onSubmit={handleSearch}>
-        <div className="relative w-full max-w-3xl">
+        <div className="relative w-full max-w-3xl search-bar">
           <input
             type="text"
             className="w-full px-6 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"
@@ -90,7 +90,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
             style={{ paddingRight: searchFile ? "7rem" : "4rem" }}
           />
 
-          <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer">
+          <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer upload-button">
             <input type="file" className="hidden" onChange={handleFileChange} />
             <svg
               xmlns="http://www.w3.org/2000/svg"

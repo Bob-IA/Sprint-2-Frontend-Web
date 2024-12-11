@@ -9,7 +9,7 @@ const ChatWidget = () => {
     <>
       {!isChatOpen && (
         <div
-          className="fixed bottom-10 right-10 bg-blue-600 text-white p-4 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 transition-all duration-300 z-50"
+          className="fixed bottom-10 right-10 bg-blue-600 text-white p-4 rounded-full shadow-lg cursor-pointer hover:bg-blue-700 transition-all duration-300 z-50 chat-widget"
           style={{ width: '80px', height: '80px' }}
           onClick={() => setIsChatOpen(true)}
         >

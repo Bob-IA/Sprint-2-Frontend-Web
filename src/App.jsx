@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Joyride from 'react-joyride';
+import { FaQuestionCircle } from 'react-icons/fa'; // Importa el ícono de signo de pregunta
 import TopBar from './components/TopBar';
 import ProductSearch from './components/ProductSearch';
 import Welcome from './components/welcome';
@@ -6,13 +8,11 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ErrorModal from './components/ErrorModal';
 import ChatWidget from './components/ChatWidget';
 
-// Función para capitalizar la primera letra
 const capitalize = (text) => {
   if (!text) return '';
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 };
 
-// Función para combinar productos y eliminar duplicados
 const combineAndDeduplicate = (exactos, similares) => {
   const allProducts = [...exactos, ...similares];
   const uniqueProducts = allProducts.reduce((acc, product) => {
@@ -27,11 +27,13 @@ const combineAndDeduplicate = (exactos, similares) => {
 function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0); // Estado para el precio total
+  const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [expandedTerms, setExpandedTerms] = useState({}); // Estado para manejar la expansión de términos
+  const [expandedTerms, setExpandedTerms] = useState({});
+  const [runTutorial, setRunTutorial] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(true);
 
   const handleSearchResults = (results) => {
     console.log('Resultados de la búsqueda recibidos:', results);
@@ -55,7 +57,6 @@ function App() {
     }
   
     const groupedResults = results.map((result) => {
-      // Verificar si productos_similares es un string o un array
       const productosSimilares =
         typeof result.productos_similares === 'string'
           ? result.productos_similares
@@ -79,7 +80,7 @@ function App() {
               SKU: similar.SKU,
               Nombre: similar.Nombre,
               Marca: similar.Marca,
-              Costo: Math.round(parseFloat(similar.Costo || 0)), // Manejar costos faltantes
+              Costo: Math.round(parseFloat(similar.Costo || 0)),
             }));
   
       const productosExactos = (result.productos_exactos || []).map((producto) => ({
@@ -87,23 +88,22 @@ function App() {
         Nombre: producto.Nombre,
         Marca: producto.Marca,
         Imagen: producto.Imagen_URL,
-        Costo: Math.round(parseFloat(producto.Costo || 0)), // Manejar costos faltantes
+        Costo: Math.round(parseFloat(producto.Costo || 0)),
       }));
   
       const productosCombinados = combineAndDeduplicate(productosExactos, productosSimilares);
   
       return {
-        productoBuscado: capitalize(result.producto_buscado), // Capitalizar término buscado
+        productoBuscado: capitalize(result.producto_buscado),
         productosCombinados,
       };
     });
   
     setSearchResults(groupedResults);
     setSelectedProducts([]);
-    setTotalPrice(0); // Reinicia el precio total
-    setExpandedTerms({}); // Reinicia los estados de expansión
+    setTotalPrice(0);
+    setExpandedTerms({});
   };
-  
 
   const handleProductSelection = (sku, costo) => {
     setSelectedProducts((prevSelected) => {
@@ -174,8 +174,105 @@ function App() {
   const handleLogoClick = () => {
     setSearchResults([]);
     setSelectedProducts([]);
-    setTotalPrice(0); // Reinicia el precio total
+    setTotalPrice(0);
   };
+
+  const handleStartTutorial = () => {
+    setRunTutorial(true);
+    setShowTutorialModal(false);
+  };
+
+  const handleSkipTutorial = () => {
+    setShowTutorialModal(false);
+  };
+
+  const tutorialSteps = [
+    {
+      target: '.search-bar input',
+      content: 'Aquí puedes buscar productos por nombre.',
+      placement: 'bottom',
+      offset: 10,
+      disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
+      disableCloseOnEsc: false,
+      disableOverlay: false,
+      disableOverlayClose: false,
+      disableScrollParentFix: false,
+      disableScrolling: true, // Deshabilita el desplazamiento automático
+      event: 'click',
+      showProgress: true,
+      showSkipButton: true,
+      spotlightClicks: false,
+      spotlightPadding: 10,
+    },
+    {
+      target: '.upload-button',
+      content: 'Aquí puedes subir un archivo CSV para buscar productos.',
+      placement: 'bottom',
+      offset: 10,
+      disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
+      disableCloseOnEsc: false,
+      disableOverlay: false,
+      disableOverlayClose: false,
+      disableScrollParentFix: false,
+      disableScrolling: true, // Deshabilita el desplazamiento automático
+      event: 'click',
+      showProgress: true,
+      showSkipButton: true,
+      spotlightClicks: false,
+      spotlightPadding: 10,
+    },
+    {
+      target: '.results-section',
+      content: 'Aquí verás los resultados de tu búsqueda.',
+      placement: 'bottom',
+      offset: 10,
+      disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
+      disableCloseOnEsc: false,
+      disableOverlay: false,
+      disableOverlayClose: false,
+      disableScrollParentFix: false,
+      disableScrolling: true, // Deshabilita el desplazamiento automático
+      event: 'click',
+      showProgress: true,
+      showSkipButton: true,
+      spotlightClicks: false,
+      spotlightPadding: 10,
+    },
+    {
+      target: '.download-button',
+      content: 'Aquí puedes descargar los productos seleccionados.',
+      placement: 'bottom',
+      offset: 10,
+      disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
+      disableCloseOnEsc: false,
+      disableOverlay: false,
+      disableOverlayClose: false,
+      disableScrollParentFix: false,
+      disableScrolling: true, // Deshabilita el desplazamiento automático
+      event: 'click',
+      showProgress: true,
+      showSkipButton: true,
+      spotlightClicks: false,
+      spotlightPadding: 10,
+    },
+    {
+      target: '.chat-widget',
+      content: '¿Tienes dudas sobre que materiales necesitas? Hablalo con BOB IA.',
+      placement: 'left',
+      offset: 10,
+      disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
+      disableCloseOnEsc: false,
+      disableOverlay: false,
+      disableOverlayClose: false,
+      disableScrollParentFix: false,
+      disableScrolling: true, // Deshabilita el desplazamiento automático
+      event: 'click',
+      showProgress: true,
+      showSkipButton: true,
+      spotlightClicks: false,
+      spotlightPadding: 10,
+    },
+  ];
 
   return (
     <div className="h-screen flex flex-col">
@@ -184,24 +281,26 @@ function App() {
           onSearchResults={handleSearchResults}
           setLoading={setLoading}
         />
+        <button
+          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600 transition-colors flex items-center"
+          onClick={handleStartTutorial}
+        >
+          <FaQuestionCircle className="mr-2" /> Tutorial
+        </button>
       </TopBar>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-full bg-white p-4 overflow-y-auto transition-all duration-300 ease-in-out">
+        <div className="w-full bg-white p-4 overflow-y-auto transition-all duration-300 ease-in-out results-section">
           {loading ? (
             <LoadingSpinner />
           ) : (
             <>
               {searchResults.length === 0 && <Welcome />}
-
-              {/* Mostrar resultados por término */}
               {searchResults.map((result, termIndex) => (
                 <div key={termIndex} className="mt-6">
                   <h2 className="text-lg font-bold text-blue-500 mb-4">
                     {result.productoBuscado}:
                   </h2>
-
-                  {/* Productos Combinados */}
                   <ul className="flex flex-wrap mt-4">
                     {(result.productosCombinados || [])
                       .slice(0, expandedTerms[termIndex] ? result.productosCombinados.length : 6)
@@ -231,7 +330,6 @@ function App() {
                         </li>
                       ))}
                   </ul>
-
                   {result.productosCombinados.length > 6 && (
                     <div className="mt-4 text-center">
                       <button
@@ -244,14 +342,13 @@ function App() {
                   )}
                 </div>
               ))}
-
               {searchResults.length > 0 && (
                 <div className="mt-6">
                   <div className="text-lg font-bold mb-4">
                     Precio Total: ${totalPrice}
                   </div>
                   <button
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4"
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4 download-button"
                     onClick={() => handleDownloadSelected(false)}
                   >
                     Descargar Productos Seleccionados
@@ -276,7 +373,76 @@ function App() {
         />
       )}
 
-      <ChatWidget />
+      <ChatWidget className="chat-widget" />
+
+      {showTutorialModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h2 className="text-xl font-bold mb-4">¿Deseas iniciar el tutorial?</h2>
+            <div className="flex justify-center">
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600 transition-colors mr-4"
+                onClick={handleStartTutorial}
+              >
+                Sí, iniciar tutorial
+              </button>
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded-full shadow hover:bg-gray-600 transition-colors"
+                onClick={handleSkipTutorial}
+              >
+                No, saltar tutorial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Joyride
+        steps={tutorialSteps}
+        run={runTutorial}
+        continuous
+        showProgress
+        showSkipButton
+        styles={{
+          options: {
+            zIndex: 10000,
+            primaryColor: '#1D4ED8',
+            textColor: '#000000',
+            backgroundColor: '#FFFFFF',
+            spotlightShadow: '0 0 15px rgba(0, 0, 0, 0.5)',
+            overlayColor: 'rgba(0, 0, 0, 0.5)',
+          },
+          buttonNext: {
+            backgroundColor: '#1D4ED8',
+            color: '#FFFFFF',
+          },
+          buttonBack: {
+            color: '#1D4ED8',
+          },
+          buttonSkip: {
+            color: '#1D4ED8',
+          },
+          buttonClose: {
+            color: '#1D4ED8',
+          },
+          tooltip: {
+            borderRadius: '8px',
+            boxShadow: '0 0 15px rgba(0, 0, 0, 0.2)',
+          },
+        }}
+        locale={{
+          next: 'Siguiente',
+          back: 'Atrás',
+          skip: 'Saltar',
+          last: 'Finalizar',
+          nextLabelWithProgress: 'Siguiente',
+        }}
+        callback={(data) => {
+          if (data.status === 'finished' || data.status === 'skipped') {
+            setRunTutorial(false);
+          }
+        }}
+      />
     </div>
   );
 }
