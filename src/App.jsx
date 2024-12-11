@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Joyride from 'react-joyride';
 import { FaQuestionCircle } from 'react-icons/fa'; // Importa el ícono de signo de pregunta
 import TopBar from './components/TopBar';
