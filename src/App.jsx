@@ -423,7 +423,7 @@ function App() {
             color: '#1D4ED8',
           },
           buttonClose: {
-            color: '#1D4ED8',
+            display: 'none', // Esto elimina la "X" de cierre
           },
           tooltip: {
             borderRadius: '8px',

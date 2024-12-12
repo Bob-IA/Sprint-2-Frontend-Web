@@ -31,7 +31,7 @@ const Welcome = () => {
       {/* Instrucciones adicionales */}
       <div className="flex flex-col items-start text-left max-w-md w-full bg-gray-100 rounded-lg shadow-lg p-6">
         <p className="text-lg text-gray-700 mb-4">
-          Los resultados aparecerán en "Productos Encontrados" y "Productos Similares".
+          Los resultados aparecerán para cada producto buscado.
         </p>
         <p className="text-lg text-gray-700">
           Puedes seleccionar productos para descargarlos en un archivo CSV.
