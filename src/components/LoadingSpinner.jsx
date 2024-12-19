@@ -4,7 +4,7 @@ const LoadingSpinner = () => {
   return (
     <div className="flex justify-center items-center h-full">
       <div className="bg-gray-200 p-8 rounded-lg shadow-lg flex flex-col justify-center items-center" style={{ width: '500px', height: '500px' }}>
-        <img src="/bob.gif" alt="Loading" className="h-64 w-64 mb-4" />
+        <img src="/logo1.jpg" alt="Loading" className="h-64 w-64 mb-4 rounded-full" />
         <img src="/cargando-png.gif" alt="Loading" className="h-32 w-32 mb-4" />
         <div className="text-lg font-bold text-blue-900">
           <span className="letter-1">B</span>
