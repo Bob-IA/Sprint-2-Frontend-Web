@@ -87,7 +87,7 @@ function App() {
         SKU: producto.SKU,
         Nombre: producto.Nombre,
         Marca: producto.Marca,
-        Imagen: producto.Imagen_URL,
+        Imagen: producto['URL de la Imagen'],
         Costo: Math.round(parseFloat(producto.Costo || 0)),
       }));
   
@@ -320,10 +320,18 @@ function App() {
                                 ✓
                               </span>
                             )}
-                            <div className="text-sm font-bold">{producto.Nombre}</div>
-                            <div className="text-sm"><strong>Marca:</strong> {producto.Marca}</div>
-                            <div className="text-sm italic">SKU: {producto.SKU}</div>
-                            <div className="text-sm font-semibold text-green-500">
+                            <img
+                              src={producto.Imagen || producto['URL de la Imagen'] || 'https://via.placeholder.com/150'}
+                              alt={producto.Nombre}
+                              className="w-full h-60 object-contain rounded-lg"
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/150';
+                              }}
+                            />
+                            <div className="text-lg font-bold">{producto.Nombre}</div> {/* Cambiado a text-lg */}
+                            <div className="text-lg"><strong>Marca:</strong> {producto.Marca}</div> {/* Cambiado a text-lg */}
+                            <div className="text-lg italic">SKU: {producto.SKU}</div> {/* Cambiado a text-lg */}
+                            <div className="text-lg font-semibold text-green-500">
                               ${producto.Costo || '0'}
                             </div>
                           </div>
