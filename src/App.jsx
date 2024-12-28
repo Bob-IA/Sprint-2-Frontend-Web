@@ -124,7 +124,7 @@ function App() {
     }));
   };
 
-  const handleDownloadSelected = async (descargarTodo = false) => {
+  const handleDownloadSelected = async (descargarTodo = false, formato = 'excel') => {
     if (selectedProducts.length === 0 && !descargarTodo) {
       console.error('No hay productos seleccionados para descargar.');
       setErrorMessage('No hay productos seleccionados para descargar.');
@@ -149,7 +149,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productos, descargar_todo: descargarTodo }),
+        body: JSON.stringify({ productos, descargar_todo: descargarTodo, formato }),
       });
 
       if (!response.ok) {
@@ -160,7 +160,7 @@ function App() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'productos_seleccionados.xlsx';
+      a.download = formato === 'pdf' ? 'productos_seleccionados.pdf' : 'productos_seleccionados.xlsx';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -321,11 +321,11 @@ function App() {
                               </span>
                             )}
                             <img
-                              src={producto.Imagen || producto['URL de la Imagen'] || 'https://via.placeholder.com/150'}
+                              src={producto.Imagen || producto['URL de la Imagen'] || '/logo1.jpg'}
                               alt={producto.Nombre}
                               className="w-full h-60 object-contain rounded-lg"
                               onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/150';
+                                e.target.src = '/logo1.jpg';
                               }}
                             />
                             <div className="text-lg font-bold">{producto.Nombre}</div> {/* Cambiado a text-lg */}
@@ -357,15 +357,27 @@ function App() {
                   </div>
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4 download-button"
-                    onClick={() => handleDownloadSelected(false)}
+                    onClick={() => handleDownloadSelected(false, 'excel')}
                   >
-                    Descargar Productos Seleccionados
+                    Descargar Productos Seleccionados (Excel)
                   </button>
                   <button
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all duration-300"
-                    onClick={() => handleDownloadSelected(true)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all duration-300 mr-4"
+                    onClick={() => handleDownloadSelected(false, 'pdf')}
                   >
-                    Descargar Todos los Productos
+                    Descargar Productos Seleccionados (PDF)
+                  </button>
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-all duration-300 mr-4"
+                    onClick={() => handleDownloadSelected(true, 'excel')}
+                  >
+                    Descargar Todos los Productos (Excel)
+                  </button>
+                  <button
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-all duration-300"
+                    onClick={() => handleDownloadSelected(true, 'pdf')}
+                  >
+                    Descargar Todos los Productos (PDF)
                   </button>
                 </div>
               )}
