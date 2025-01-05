@@ -29,9 +29,10 @@ const ChatWindow = ({ onClose }) => {
       const data = await response.json();
 
       if (data.respuesta_modelo) {
+        const formattedMessage = formatMessage(data.respuesta_modelo);
         setMessages((prevMessages) => [
           ...prevMessages,
-          { sender: 'bot', text: data.respuesta_modelo },
+          { sender: 'bot', text: formattedMessage },
         ]);
       }
     } catch (error) {
@@ -43,6 +44,17 @@ const ChatWindow = ({ onClose }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const formatMessage = (message) => {
+    const items = message.split('-').filter(item => item.trim() !== '');
+    return (
+      <ul className="list-disc list-inside">
+        {items.map((item, index) => (
+          <li key={index}>{item.trim()}</li>
+        ))}
+      </ul>
+    );
   };
 
   return (
@@ -60,7 +72,7 @@ const ChatWindow = ({ onClose }) => {
         {messages.map((msg, index) => (
           <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
             <div className={`inline-block p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
-              {msg.text}
+              {typeof msg.text === 'string' ? msg.text : msg.text}
             </div>
           </div>
         ))}
