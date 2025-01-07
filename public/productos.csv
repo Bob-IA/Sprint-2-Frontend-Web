@@ -2790,18 +2790,18 @@ SCPI8,Guardapolvo Pino Finger Chaflán 13 x 43 mm 3 m Arauco,Arauco,27.794,Mater
 ARLJ7,Guardapolvo Pino Finger Chaflán cantera 13 x 68 mm 3 m Arauco,Arauco,50.9938,Materiales de Construcción,https://construmartcl.vtexassets.com/arquivos/ids/196662-300-300?v=638194455280600000&width=300&height=300&aspect=true
 M8JU8,Junquillo Pino Finger Recto 19 x 19 mm 3 m Arauco,Arauco,10.2921,Materiales de Construcción,https://construmartcl.vtexassets.com/arquivos/ids/196672-300-300?v=638194455612800000&width=300&height=300&aspect=true
 NY9PK,Cornisa Pino Finger 28 x 28 mm 3 m Arauco,Arauco,37.3126,Materiales de Construcción,https://construmartcl.vtexassets.com/arquivos/ids/196658-300-300?v=638194455161600000&width=300&height=300&aspect=true
-77061798,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,https://tse3.mm.bing.net/th?id=OIP.UMwNpmTjyJ9vPmEeW8Wp6AAAAA&pid=Api,Bauker,Herramientas,100.0
-549A3FD0,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",https://tse1.mm.bing.net/th?id=OIP.zgSQOuFP3ULlD1_Y7u7RZwHaHa&pid=Api,Bauker,Herramientas,90.0
-D4B05B49,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api,Bauker,Herramientas,200.0
-DEDCE8E9,Atornillador 4V 29 Accesorios USB,https://tse1.mm.bing.net/th?id=OIP.yL4O3ulcANgw75PdjCv_oQHaHa&pid=Api,Bauker,Herramientas,40.0
-7E653B6B,Herramienta Multifuncional Inalámbrica 18V sin batería,https://tse2.mm.bing.net/th?id=OIP.uZRV4LNbSK4utlUvRNOO8wHaEK&pid=Api,Bauker,Herramientas,85.0
-CF063FF0,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,https://tse3.mm.bing.net/th?id=OIP.UMwNpmTjyJ9vPmEeW8Wp6AAAAA&pid=Api,Bauker,Herramientas,100.0
-D4F56D2C,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",https://tse1.mm.bing.net/th?id=OIP.zgSQOuFP3ULlD1_Y7u7RZwHaHa&pid=Api,Bauker,Herramientas,90.0
-D988E178,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api,Bauker,Herramientas,200.0
-31A2FDDC,Atornillador 4V 29 Accesorios USB,https://tse1.mm.bing.net/th?id=OIP.yL4O3ulcANgw75PdjCv_oQHaHa&pid=Api,Bauker,Herramientas,40.0
-822C1158,Herramienta Multifuncional Inalámbrica 18V sin batería,https://tse2.mm.bing.net/th?id=OIP.uZRV4LNbSK4utlUvRNOO8wHaEK&pid=Api,Bauker,Herramientas,85.0
-06680BB4,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,https://tse2.mm.bing.net/th?id=OIP.CwpX73GKJEZ5G5OLTcPd0AAAAA&pid=Api,Bauker,Herramientas,100.0
-669AD2DE,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",https://tse2.mm.bing.net/th?id=OIP.fBgNQVUMjx04d_Jim-JWCgHaHa&pid=Api,Bauker,Herramientas,90.0
-E04FDD50,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api,Bauker,Herramientas,200.0
-7DE041CA,Atornillador 4V 29 Accesorios USB,https://tse1.mm.bing.net/th?id=OIP.jzj30d1FFF7fJ-4_oSNhIAHaHt&pid=Api,Bauker,Herramientas,40.0
-5A50923B,Herramienta Multifuncional Inalámbrica 18V sin batería,https://tse3.mm.bing.net/th?id=OIP.mRLmRs2fPchpywK1JaREEgHaHa&pid=Api,Bauker,Herramientas,85.0
+77061798,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,Bauker,100.0,Herramientas,https://tse3.mm.bing.net/th?id=OIP.UMwNpmTjyJ9vPmEeW8Wp6AAAAA&pid=Api
+549A3FD0,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",Bauker,90.0,Herramientas,https://tse1.mm.bing.net/th?id=OIP.zgSQOuFP3ULlD1_Y7u7RZwHaHa&pid=Api
+D4B05B49,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",Bauker,200.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api
+DEDCE8E9,Atornillador 4V 29 Accesorios USB,Bauker,40.0,Herramientas,https://tse1.mm.bing.net/th?id=OIP.yL4O3ulcANgw75PdjCv_oQHaHa&pid=Api
+7E653B6B,Herramienta Multifuncional Inalámbrica 18V sin batería,Bauker,85.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.uZRV4LNbSK4utlUvRNOO8wHaEK&pid=Api
+CF063FF0,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,Bauker,100.0,Herramientas,https://tse3.mm.bing.net/th?id=OIP.UMwNpmTjyJ9vPmEeW8Wp6AAAAA&pid=Api
+D4F56D2C,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",Bauker,90.0,Herramientas,https://tse1.mm.bing.net/th?id=OIP.zgSQOuFP3ULlD1_Y7u7RZwHaHa&pid=Api
+D988E178,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",Bauker,200.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api
+31A2FDDC,Atornillador 4V 29 Accesorios USB,Bauker,40.0,Herramientas,https://tse1.mm.bing.net/th?id=OIP.yL4O3ulcANgw75PdjCv_oQHaHa&pid=Api
+822C1158,Herramienta Multifuncional Inalámbrica 18V sin batería,Bauker,85.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.uZRV4LNbSK4utlUvRNOO8wHaEK&pid=Api
+06680BB4,Taladro Inalámbrico Percutor 13 mm 18 V/2 Baterías,Bauker,100.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.CwpX73GKJEZ5G5OLTcPd0AAAAA&pid=Api
+669AD2DE,"Sierra Circular Inalámbrica 7 1/4"" 18V sin batería",Bauker,90.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.fBgNQVUMjx04d_Jim-JWCgHaHa&pid=Api
+E04FDD50,"Set de Herramientas 18V: Taladro Percutor, Sierra Circular y Sierra Caladora",Bauker,200.0,Herramientas,https://tse2.mm.bing.net/th?id=OIP.-F1zYIwiLtKWldTb4zN2hwAAAA&pid=Api
+7DE041CA,Atornillador 4V 29 Accesorios USB,Bauker,40.0,Herramientas,https://tse1.mm.bing.net/th?id=OIP.jzj30d1FFF7fJ-4_oSNhIAHaHt&pid=Api
+5A50923B,Herramienta Multifuncional Inalámbrica 18V sin batería,Bauker,85.0,Herramientas,https://tse3.mm.bing.net/th?id=OIP.mRLmRs2fPchpywK1JaREEgHaHa&pid=Api
