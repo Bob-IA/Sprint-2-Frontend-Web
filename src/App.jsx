@@ -282,7 +282,7 @@ function App() {
           setLoading={setLoading}
         />
         <button
-          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600 transition-colors flex items-center"
+          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-600 hover:scale-105 transform transition-all flex items-center"
           onClick={handleStartTutorial}
         >
           <FaQuestionCircle className="mr-2" /> Tutorial
@@ -306,11 +306,10 @@ function App() {
                       .slice(0, expandedTerms[termIndex] ? result.productosCombinados.length : 6)
                       .map((producto, index) => (
                         <li
-                          key={index}
-                          className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-2 rounded-lg shadow-md transform transition-transform duration-200 ease-in-out cursor-pointer ${
+                          className={`mb-4 mr-4 flex-shrink-0 w-1/4 p-4 bg-white rounded-lg shadow-lg transform transition-transform duration-300 hover:scale-105 cursor-pointer ${
                             selectedProducts.includes(producto.SKU)
-                              ? 'bg-blue-100 border-2 border-blue-500 shadow-lg'
-                              : 'bg-gray-100 hover:bg-gray-200'
+                              ? 'border-2 border-blue-500 bg-blue-50'
+                              : 'hover:shadow-xl'
                           }`}
                           onClick={() => handleProductSelection(producto.SKU, producto.Costo)}
                         >
@@ -356,25 +355,25 @@ function App() {
                     Precio Total: ${totalPrice}
                   </div>
                   <button
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all duration-300 mr-4 download-button"
+                    className="bg-green-600 text-white px-6 py-3 rounded-full shadow-md hover:bg-green-700 transition-all duration-300"
                     onClick={() => handleDownloadSelected(false, 'excel')}
                   >
                     Descargar Productos Seleccionados (Excel)
                   </button>
                   <button
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all duration-300 mr-4"
+                    className="bg-red-600 text-white px-6 py-3 rounded-full shadow-md hover:bg-red-700 transition-all duration-300"
                     onClick={() => handleDownloadSelected(false, 'pdf')}
                   >
                     Descargar Productos Seleccionados (PDF)
                   </button>
                   <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-all duration-300 mr-4"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-700 transition-all duration-300"
                     onClick={() => handleDownloadSelected(true, 'excel')}
                   >
                     Descargar Todos los Productos (Excel)
                   </button>
                   <button
-                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-all duration-300"
+                    className="bg-yellow-600 text-white px-6 py-3 rounded-full shadow-md hover:bg-yellow-700 transition-all duration-300"
                     onClick={() => handleDownloadSelected(true, 'pdf')}
                   >
                     Descargar Todos los Productos (PDF)

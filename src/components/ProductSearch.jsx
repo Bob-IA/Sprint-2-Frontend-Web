@@ -14,9 +14,8 @@ function ProductSearch({ onSearchResults, setLoading }) {
 
     const formData = new FormData();
 
-    // Verificar si se cargó un archivo
     if (searchFile) {
-      formData.append("busqueda", searchFile); // Cambiar el campo a "busqueda"
+      formData.append("busqueda", searchFile);
     } else if (searchTerm.trim()) {
       formData.append("nombres_productos", searchTerm.trim());
     } else {
@@ -27,7 +26,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
     }
 
     try {
-      // Enviar los datos al backend
       const response = await fetch("https://ms-ia.tssw.cl/upload", {
         method: "POST",
         body: formData,
@@ -40,7 +38,6 @@ function ProductSearch({ onSearchResults, setLoading }) {
 
       const data = await response.json();
 
-      // Verificar que la estructura de respuesta sea válida
       if (!Array.isArray(data)) {
         throw new Error("Estructura inesperada en la respuesta del servidor");
       }
@@ -79,22 +76,30 @@ function ProductSearch({ onSearchResults, setLoading }) {
   return (
     <>
       <form className="flex items-center w-full" onSubmit={handleSearch}>
+        {/* Barra de búsqueda */}
         <div className="relative w-full max-w-3xl search-bar">
           <input
             type="text"
-            className="w-full px-6 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring focus:ring-blue-500 text-black"
+            className={`w-full px-6 py-3 border ${
+              searchFile ? "border-gray-300" : "border-blue-500"
+            } rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black`}
             placeholder="Buscar productos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={!!searchFile} // Deshabilitar si hay un archivo cargado
+            disabled={!!searchFile}
             style={{ paddingRight: searchFile ? "7rem" : "4rem" }}
           />
 
-          <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer upload-button">
-            <input type="file" className="hidden" onChange={handleFileChange} />
+          {/* Botón para subir archivo */}
+          <label className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer">
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+            />
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-500 hover:text-blue-600 transition-colors"
+              className="h-6 w-6 text-gray-500 hover:text-blue-600 transition-transform hover:scale-110"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -109,20 +114,24 @@ function ProductSearch({ onSearchResults, setLoading }) {
           </label>
         </div>
 
+        {/* Botón de búsqueda */}
         <button
           type="submit"
-          className="ml-4 bg-blue-500 text-white px-6 py-3 rounded-full shadow hover:bg-blue-600 transition-colors"
+          className="ml-4 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transform transition-all duration-300 active:scale-95"
         >
           Buscar
         </button>
 
+        {/* Indicador de archivo cargado */}
         {fileName && (
-          <div className="flex items-center ml-4 p-2 bg-gray-100 rounded-lg shadow-sm">
-            <span className="text-sm text-gray-700 mr-2">{fileName}</span>
+          <div className="flex items-center ml-4 p-2 bg-gray-100 rounded-lg shadow-md">
+            <span className="text-sm text-gray-700 font-medium mr-2">
+              {fileName}
+            </span>
             <button
               type="button"
               onClick={handleRemoveFile}
-              className="text-red-500 hover:text-red-700 transition-colors"
+              className="text-red-500 hover:text-red-700 transform hover:scale-110 transition-all duration-200"
             >
               ✕
             </button>
@@ -130,6 +139,7 @@ function ProductSearch({ onSearchResults, setLoading }) {
         )}
       </form>
 
+      {/* Modal de error */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}
