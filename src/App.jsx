@@ -224,8 +224,8 @@ function App() {
     {
       target: '.results-section',
       content: 'Aquí verás los resultados de tu búsqueda.',
-      placement: 'bottom',
-      offset: 10,
+      placement: 'center',
+      offset: 0,
       disableBeacon: true, // Deshabilita el beacon para que el cuadro de texto aparezca inmediatamente
       disableCloseOnEsc: false,
       disableOverlay: false,
@@ -275,7 +275,7 @@ function App() {
   ];
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-gradient-to-bl from-blue-50 to-blue-200">
       <TopBar onLogoClick={handleLogoClick}>
         <ProductSearch
           onSearchResults={handleSearchResults}

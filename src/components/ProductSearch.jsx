@@ -53,6 +53,20 @@ function ProductSearch({ onSearchResults, setLoading }) {
       setLoading(false);
     }
   };
+// Manejo de mensajes recibidos desde el chat
+React.useEffect(() => {
+  const handleSearchFromChat = (event) => {
+    setSearchTerm(event.detail); // Actualizar barra de búsqueda con el texto recibido
+  };
+
+  window.addEventListener("searchFromChat", handleSearchFromChat);
+
+  return () => {
+    window.removeEventListener("searchFromChat", handleSearchFromChat);
+  };
+}, []);
+
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];

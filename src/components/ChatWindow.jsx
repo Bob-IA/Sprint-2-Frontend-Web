@@ -51,15 +51,10 @@ const ChatWindow = ({ onClose }) => {
     }
   };
 
+  // Formato del mensaje con *
   const formatMessage = (message) => {
     const items = message.split("-").filter((item) => item.trim() !== "");
-    return (
-      <ul className="list-disc list-inside">
-        {items.map((item, index) => (
-          <li key={index}>{item.trim()}</li>
-        ))}
-      </ul>
-    );
+    return items.map((item) => `* ${item.trim()}`).join("\n");
   };
 
   return (
@@ -87,7 +82,7 @@ const ChatWindow = ({ onClose }) => {
             key={index}
             className={`flex ${
               msg.sender === "user" ? "justify-end" : "justify-start"
-            }`}
+            } relative`}
           >
             <div
               className={`max-w-[75%] p-3 rounded-lg shadow-sm ${
@@ -95,15 +90,39 @@ const ChatWindow = ({ onClose }) => {
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200 text-gray-800"
               }`}
+              style={{ position: "relative" }}
             >
-              {typeof msg.text === "string" ? msg.text : msg.text}
+              <pre className="whitespace-pre-wrap">{msg.text}</pre>
             </div>
+            {msg.sender === "bot" && (
+              <button
+                onClick={() => {
+                  // Preparar texto para copiar: eliminar paréntesis y *
+                  const textToCopy = msg.text
+                    .replace(/\s*\([^)]*\)/g, "")  // Eliminar paréntesis y su contenido
+                    .replace(/\* /g, "")           // Eliminar los *
+                    .split("\n")                   // Separar líneas
+                    .filter((item) => item.trim() !== "") // Filtrar líneas vacías
+                    .join(", ");                   // Unir con comas
+                  navigator.clipboard.writeText(textToCopy);
+                  window.dispatchEvent(
+                    new CustomEvent("searchFromChat", { detail: textToCopy })
+                  );
+                }}
+                className="bg-blue-500 text-white text-xs px-2 py-1 rounded shadow hover:bg-blue-600 transition-all ml-2"
+                style={{ alignSelf: "center" }}
+              >
+                Copiar y Buscar
+              </button>
+            )}
           </div>
         ))}
         {isLoading && (
           <div className="flex justify-center items-center mt-4">
             <span className="inline-block w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-            <span className="ml-2 text-gray-500">BOB IA está escribiendo...</span>
+            <span className="ml-2 text-gray-500">
+              BOB IA está escribiendo...
+            </span>
           </div>
         )}
       </div>
